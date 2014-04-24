@@ -11,6 +11,5 @@ namespace VagrantWin
         public string name { get; set; }
         public string status { get; set; }
         public string provider { get; set; }
-        public string ssh { get; set; }
     }
 }
