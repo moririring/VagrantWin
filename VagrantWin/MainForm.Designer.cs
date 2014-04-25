@@ -40,6 +40,7 @@
             this.vagrantfileOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.commandGroupBox = new System.Windows.Forms.GroupBox();
+            this.statusButton = new System.Windows.Forms.Button();
             this.checkDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -56,6 +57,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.vagrantfileTextBox.Location = new System.Drawing.Point(12, 12);
             this.vagrantfileTextBox.Name = "vagrantfileTextBox";
+            this.vagrantfileTextBox.ReadOnly = true;
             this.vagrantfileTextBox.Size = new System.Drawing.Size(517, 19);
             this.vagrantfileTextBox.TabIndex = 0;
             // 
@@ -77,52 +79,52 @@
             this.upButton.AutoSize = true;
             this.upButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.upButton.Enabled = false;
-            this.upButton.Location = new System.Drawing.Point(9, 18);
+            this.upButton.Location = new System.Drawing.Point(60, 18);
             this.upButton.Name = "upButton";
             this.upButton.Size = new System.Drawing.Size(29, 22);
             this.upButton.TabIndex = 2;
             this.upButton.Text = "Up";
             this.upButton.UseVisualStyleBackColor = true;
-            this.upButton.Click += new System.EventHandler(this.upButton_Click);
+            this.upButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
             // haltButton
             // 
             this.haltButton.AutoSize = true;
             this.haltButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.haltButton.Enabled = false;
-            this.haltButton.Location = new System.Drawing.Point(44, 18);
+            this.haltButton.Location = new System.Drawing.Point(95, 18);
             this.haltButton.Name = "haltButton";
             this.haltButton.Size = new System.Drawing.Size(36, 22);
             this.haltButton.TabIndex = 3;
             this.haltButton.Text = "Halt";
             this.haltButton.UseVisualStyleBackColor = true;
-            this.haltButton.Click += new System.EventHandler(this.haltButton_Click);
+            this.haltButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
             // destroyButton
             // 
             this.destroyButton.AutoSize = true;
             this.destroyButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.destroyButton.Enabled = false;
-            this.destroyButton.Location = new System.Drawing.Point(86, 18);
+            this.destroyButton.Location = new System.Drawing.Point(137, 18);
             this.destroyButton.Name = "destroyButton";
             this.destroyButton.Size = new System.Drawing.Size(55, 22);
             this.destroyButton.TabIndex = 4;
             this.destroyButton.Text = "Destroy";
             this.destroyButton.UseVisualStyleBackColor = true;
-            this.destroyButton.Click += new System.EventHandler(this.destroyButton_Click);
+            this.destroyButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
             // provisionButton
             // 
             this.provisionButton.AutoSize = true;
             this.provisionButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.provisionButton.Enabled = false;
-            this.provisionButton.Location = new System.Drawing.Point(147, 18);
+            this.provisionButton.Location = new System.Drawing.Point(198, 18);
             this.provisionButton.Name = "provisionButton";
             this.provisionButton.Size = new System.Drawing.Size(62, 22);
             this.provisionButton.TabIndex = 5;
             this.provisionButton.Text = "Provision";
             this.provisionButton.UseVisualStyleBackColor = true;
-            this.provisionButton.Click += new System.EventHandler(this.provisionButton_Click);
+            this.provisionButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
             // vagrantDataGridView
             // 
@@ -152,9 +154,10 @@
             this.consoleTextBox.Location = new System.Drawing.Point(12, 191);
             this.consoleTextBox.Multiline = true;
             this.consoleTextBox.Name = "consoleTextBox";
+            this.consoleTextBox.ReadOnly = true;
             this.consoleTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.consoleTextBox.Size = new System.Drawing.Size(556, 193);
-            this.consoleTextBox.TabIndex = 7;
+            this.consoleTextBox.TabIndex = 1;
             this.consoleTextBox.WordWrap = false;
             // 
             // vagrantfileOpenFileDialog
@@ -173,39 +176,53 @@
             // 
             // commandGroupBox
             // 
+            this.commandGroupBox.Controls.Add(this.statusButton);
             this.commandGroupBox.Controls.Add(this.destroyButton);
             this.commandGroupBox.Controls.Add(this.upButton);
             this.commandGroupBox.Controls.Add(this.haltButton);
             this.commandGroupBox.Controls.Add(this.provisionButton);
             this.commandGroupBox.Location = new System.Drawing.Point(12, 37);
             this.commandGroupBox.Name = "commandGroupBox";
-            this.commandGroupBox.Size = new System.Drawing.Size(220, 45);
+            this.commandGroupBox.Size = new System.Drawing.Size(268, 45);
             this.commandGroupBox.TabIndex = 9;
             this.commandGroupBox.TabStop = false;
             this.commandGroupBox.Text = "command";
             // 
+            // statusButton
+            // 
+            this.statusButton.AutoSize = true;
+            this.statusButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.statusButton.Enabled = false;
+            this.statusButton.Location = new System.Drawing.Point(6, 17);
+            this.statusButton.Name = "statusButton";
+            this.statusButton.Size = new System.Drawing.Size(48, 22);
+            this.statusButton.TabIndex = 6;
+            this.statusButton.Text = "Status";
+            this.statusButton.UseVisualStyleBackColor = true;
+            this.statusButton.Click += new System.EventHandler(this.statusButton_Click);
+            // 
             // checkDataGridViewCheckBoxColumn
             // 
-            this.checkDataGridViewCheckBoxColumn.DataPropertyName = "check";
-            this.checkDataGridViewCheckBoxColumn.HeaderText = "check";
+            this.checkDataGridViewCheckBoxColumn.DataPropertyName = "Check";
+            this.checkDataGridViewCheckBoxColumn.HeaderText = "Check";
             this.checkDataGridViewCheckBoxColumn.Name = "checkDataGridViewCheckBoxColumn";
             // 
             // nameDataGridViewTextBoxColumn
             // 
-            this.nameDataGridViewTextBoxColumn.DataPropertyName = "name";
-            this.nameDataGridViewTextBoxColumn.HeaderText = "name";
+            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
+            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
             this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
             // 
             // statusDataGridViewTextBoxColumn
             // 
-            this.statusDataGridViewTextBoxColumn.DataPropertyName = "status";
-            this.statusDataGridViewTextBoxColumn.HeaderText = "status";
+            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
+            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
             this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
             // 
             // providerDataGridViewTextBoxColumn
             // 
-            this.providerDataGridViewTextBoxColumn.DataPropertyName = "provider";
-            this.providerDataGridViewTextBoxColumn.HeaderText = "provider";
+            this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
+            this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
             this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
             // 
             // vagrantDataBindingSource
@@ -252,6 +269,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn statusDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn providerDataGridViewTextBoxColumn;
         private System.Windows.Forms.GroupBox commandGroupBox;
+        private System.Windows.Forms.Button statusButton;
     }
 }
 

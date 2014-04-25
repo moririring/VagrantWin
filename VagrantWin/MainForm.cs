@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,20 +10,21 @@ namespace VagrantWin
 {
     public partial class MainForm : Form
     {
-        BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>(); 
+        readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>(); 
         public MainForm()
         {
             InitializeComponent();
 
-            var column = new DataGridViewButtonColumn();
-            column.Name = "ssh";
-            column.Text = "ssh";
-            column.UseColumnTextForButtonValue = true;
-            vagrantDataGridView.Columns.Add(column);
+//            var column = new DataGridViewButtonColumn();
+//            column.Name = "ssh";
+//            column.Text = "ssh";
+//            column.UseColumnTextForButtonValue = true;
+//            vagrantDataGridView.Columns.Add(column);
             vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
         async private void ComSpecLines(string command)
         {
+            commandGroupBox.Enabled = false;
             //Processオブジェクトを作成
             var p = new Process
             {
@@ -43,51 +40,62 @@ namespace VagrantWin
                     Arguments = @"/c vagrant " + command,
                 }
             };
-            //
+            //文字列を非同期で一行ずつ取得
             p.OutputDataReceived += (s, e) => Task.Run(() =>
             {
                 var line = e.Data;
                 if (line == null) return;
                 Invoke(new Action(() =>
                 {
-                    consoleTextBox.Text += line + Environment.NewLine;
-                    var vagrantData = GetVagrantDataFromLine(line);
+                    consoleTextBox.HideSelection = false;
+                    consoleTextBox.AppendText(line + Environment.NewLine);
+                    var vagrantData = VagrantData.GetVagrantDataParseLine(line);
                     if (vagrantData != null)
                     {
-                        SetVagrantData(vagrantData);
+                        UpdaetVagrantData(vagrantData);
+                        commandGroupBox.Enabled = true;
                     }
                 }));
             });
-            p.Start();
-            p.BeginOutputReadLine();
+            //実行
             await Task.Run(() =>
             {
+                p.Start();
+                p.BeginOutputReadLine();
                 p.WaitForExit();
                 p.Close();
             });
-            consoleTextBox.Text += "----------------------------------------------------------------------------------" + Environment.NewLine;
+            //終了待ちしてstatus
+            consoleTextBox.HideSelection = false;
+            consoleTextBox.AppendText("----------------------------------------------------------------------------------" + Environment.NewLine);
             if (command != "status")
             {
                 ComSpecLines("status");
             }
         }
 
-        private void SetVagrantData(VagrantData vagrantData)
+        private void UpdaetVagrantData(VagrantData vagrantData)
         {
-            var status = "";
-            var hit = _vagrantDatas.SingleOrDefault(v => v.name == vagrantData.name);
+            //名前があれば更新、なければ追加
+            var hit = _vagrantDatas.SingleOrDefault(v => v.Name == vagrantData.Name);
             if (hit != null)
             {
-                hit.status = vagrantData.status;
-                hit.provider = vagrantData.provider;
-                status = hit.status;
+                hit.Status = vagrantData.Status;
+                hit.Provider = vagrantData.Provider;
+                SetStatus(hit.Status);
             }
             else
             {
                 _vagrantDatas.Add(vagrantData);
-                status = vagrantData.status;
+                SetStatus(vagrantData.Status);
             }
             vagrantDataGridView.Invalidate();
+            vagrantDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+
+        }
+
+        private void SetStatus(string status)
+        {
             if (status == "poweroff")
             {
                 upButton.Enabled = true;
@@ -102,35 +110,7 @@ namespace VagrantWin
                 upButton.Enabled = false;
                 destroyButton.Enabled = false;
             }
-            commandGroupBox.Enabled = true;
-        }
-
-        private VagrantData GetVagrantDataFromLine(string line)
-        {
-            //parseの条件式はこれでOKなの？
-            if (!line.Contains(' ')) return null;
-            if (!line.Contains('(')) return null;
-            if (!line.Contains(')')) return null;
-            var preSpace = line.IndexOf(' ');
-            var postSpace = line.LastIndexOf(' ');
-            var preBracket = line.IndexOf('(');
-            var postBracket = line.IndexOf(')');
-            var name = line.Substring(0, preSpace);
-            var status = line.Substring(preSpace, postSpace - preSpace).Trim();
-            var provider = line.Substring(preBracket + 1, postBracket - preBracket - 1);
-
-            if (string.IsNullOrWhiteSpace(name)) return null;
-            if (string.IsNullOrWhiteSpace(status)) return null;
-            if (string.IsNullOrWhiteSpace(provider)) return null;
-
-            var vagrantData = new VagrantData
-            {
-                check = true,
-                name = name,
-                status = status,
-                provider = provider
-            };
-            return vagrantData;
+            statusButton.Enabled = true;
         }
 
         private void readButton_Click(object sender, EventArgs e)
@@ -141,30 +121,19 @@ namespace VagrantWin
         private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
             vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            commandGroupBox.Enabled = false;
+            consoleTextBox.Focus();
+            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
             ComSpecLines("status");
         }
-        private void upButton_Click(object sender, EventArgs e)
+        private void statusButton_Click(object sender, EventArgs e)
         {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("up");
-        }
-        private void haltButton_Click(object sender, EventArgs e)
-        {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("halt");
-        }
-
-        private void destroyButton_Click(object sender, EventArgs e)
-        {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("destroy");
-        }
-
-        private void provisionButton_Click(object sender, EventArgs e)
-        {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("provision");
+            var button = sender as Button;
+            if (button != null)
+            {
+                consoleTextBox.Focus();
+                consoleTextBox.Select(consoleTextBox.Text.Length, 0);
+                ComSpecLines(button.Text.ToLower());
+            }
         }
     }
 }
