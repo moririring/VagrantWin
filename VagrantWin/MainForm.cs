@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace VagrantWin
@@ -18,12 +19,12 @@ namespace VagrantWin
         {
             InitializeComponent();
 
-
             var column = new DataGridViewButtonColumn();
             column.Name = "ssh";
-            column.UseColumnTextForButtonValue = true;
             column.Text = "ssh";
+            column.UseColumnTextForButtonValue = true;
             vagrantDataGridView.Columns.Add(column);
+            vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
 
         private void readButton_Click(object sender, EventArgs e)
@@ -34,53 +35,122 @@ namespace VagrantWin
         private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
             vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            upButton.Enabled = true;
-            destroyButton.Enabled = true;
-
-            //Processオブジェクトを作成
-            var p = new Process();
-
-            //ComSpec(cmd.exe)のパスを取得して、FileNameプロパティに指定
-            p.StartInfo.FileName = Environment.GetEnvironmentVariable("ComSpec");
-            p.StartInfo.WorkingDirectory = Path.GetDirectoryName(vagrantfileTextBox.Text);
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardInput = false;
-            //ウィンドウを表示しないようにする
-            p.StartInfo.CreateNoWindow = true;
-            //コマンドラインを指定（"/c"は実行後閉じるために必要）
-            p.StartInfo.Arguments = @"/c vagrant status";
-            //p.StartInfo.Arguments = "vagrant status";
-
-            //起動
-            p.Start();
-
-            //出力を読み取る
-            string results = p.StandardOutput.ReadToEnd();
-
-            //プロセス終了まで待機する
-            //WaitForExitはReadToEndの後である必要がある
-            //(親プロセス、子プロセスでブロック防止のため)
-            p.WaitForExit();
-            p.Close();
-
-            //default                   poweroff (virtualbox)
-            var lines = results.Replace("\r\n", "\n").Split('\n')[2];
-
-            var vagrantData = new VagrantData();
-            vagrantData.check = true;
-            vagrantData.name = lines.Substring(0, lines.IndexOf(' '));
-            vagrantData.status = lines.Substring(lines.IndexOf(' '), lines.LastIndexOf(' ') - lines.IndexOf(' ')).Trim();
-            vagrantData.provider = lines.Substring(lines.IndexOf('(') + 1, lines.IndexOf(')') - lines.IndexOf('(') - 1);
-
-            _vagrantDatas.Add(vagrantData);
-            vagrantDataBindingSource.DataSource = _vagrantDatas;
-
-            vagrantDataGridView.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
+            commandGroupBox.Enabled = false;
+            ComSpecLines("status");
         }
-
         private void upButton_Click(object sender, EventArgs e)
         {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("up");
         }
+        private void haltButton_Click(object sender, EventArgs e)
+        {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("halt");
+        }
+        async private void ComSpecLines(string command)
+        {
+            //Processオブジェクトを作成
+            var p = new Process
+            {
+                StartInfo =
+                {
+                    FileName = Environment.GetEnvironmentVariable("ComSpec"),
+                    WorkingDirectory = Path.GetDirectoryName(vagrantfileTextBox.Text),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = false,
+                    CreateNoWindow = true,
+                    //コマンドラインを指定（"/c"は実行後閉じるために必要）
+                    Arguments = @"/c vagrant " + command,
+                }
+            };
+            //
+            p.OutputDataReceived += (s, e) => Task.Run(() =>
+            {
+                var line = e.Data;
+                if (line == null) return;
+                var vagrantData = GetVagrantDataFromCommand(line);
+                Invoke(new Action(() =>
+                {
+                    consoleTextBox.Text += line + Environment.NewLine;
+                    if (vagrantData != null)
+                    {
+                        SetVagrantData(vagrantData, line);
+                    }
+                }));
+            });
+            p.Start();
+            p.BeginOutputReadLine();
+            await Task.Run(() =>
+            {
+                p.WaitForExit();
+                p.Close();
+            });
+            consoleTextBox.Text += "----------------------------------------------------------------------------------" + Environment.NewLine;
+            if (command != "status")
+            {
+                ComSpecLines("status");
+            }
+        }
+
+        private void SetVagrantData(VagrantData vagrantData, string line)
+        {
+            var status = "";
+            var hit = _vagrantDatas.SingleOrDefault(v => v.name == vagrantData.name);
+            if (hit != null)
+            {
+                hit.status = vagrantData.status;
+                hit.provider = vagrantData.provider;
+                status = hit.status;
+            }
+            else
+            {
+                _vagrantDatas.Add(vagrantData);
+                status = vagrantData.status;
+            }
+            vagrantDataGridView.Invalidate();
+            if (status == "poweroff")
+            {
+                upButton.Enabled = true;
+                destroyButton.Enabled = true;
+                haltButton.Enabled = false;
+                provisionButton.Enabled = false;
+            }
+            else if (status == "running")
+            {
+                haltButton.Enabled = true;
+                provisionButton.Enabled = true;
+                upButton.Enabled = false;
+                destroyButton.Enabled = false;
+            }
+            commandGroupBox.Enabled = true;
+        }
+
+        private VagrantData GetVagrantDataFromCommand(string line)
+        {
+            //parseの条件式はこれでOKなの？
+            if (line.Contains(' ') && line.Contains('(') && line.Contains(')'))
+            {
+                var preSpace = line.IndexOf(' ');
+                var postSpace = line.LastIndexOf(' ');
+                var preBracket = line.IndexOf('(');
+                var postBracket = line.IndexOf(')');
+                var vagrantData = new VagrantData
+                {
+                    check = true,
+                    name = line.Substring(0, preSpace),
+                    status = line.Substring(preSpace, postSpace - preSpace).Trim(),
+                    provider = line.Substring(preBracket + 1, postBracket - preBracket - 1)
+                };
+                if (!string.IsNullOrWhiteSpace(vagrantData.name) && !string.IsNullOrWhiteSpace(vagrantData.status) &&
+                    !string.IsNullOrWhiteSpace(vagrantData.provider))
+                {
+                    return vagrantData;
+                }
+            }
+            return null;
+        }
+
     }
 }
