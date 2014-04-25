@@ -24,6 +24,7 @@ namespace VagrantWin
         }
         async private void ComSpecLines(string command)
         {
+            if (string.IsNullOrWhiteSpace(vagrantfileTextBox.Text)) return;
             commandGroupBox.Enabled = false;
             //Processオブジェクトを作成
             var p = new Process
@@ -34,34 +35,59 @@ namespace VagrantWin
                     WorkingDirectory = Path.GetDirectoryName(vagrantfileTextBox.Text),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    RedirectStandardInput = false,
+                    RedirectStandardInput = true,
                     CreateNoWindow = true,
                     //コマンドラインを指定（"/c"は実行後閉じるために必要）
-                    Arguments = @"/c vagrant " + command,
+                    Arguments = (command != "destroy") ? @"/c vagrant " + command : "/v:on /e:off /k vagrant " + command,
+                    //Arguments = (command != "destroy") ? @"/c vagrant " + command : "",
                 }
             };
             //文字列を非同期で一行ずつ取得
-            p.OutputDataReceived += (s, e) => Task.Run(() =>
+            if (command != "destroy")
             {
-                var line = e.Data;
-                if (line == null) return;
-                Invoke(new Action(() =>
+                p.OutputDataReceived += (s, e) => Task.Run(() =>
                 {
-                    consoleTextBox.HideSelection = false;
-                    consoleTextBox.AppendText(line + Environment.NewLine);
-                    var vagrantData = VagrantData.GetVagrantDataParseLine(line);
-                    if (vagrantData != null)
+                    var line = e.Data;
+                    if (line == null) return;
+                    Invoke(new Action(() =>
                     {
-                        UpdaetVagrantData(vagrantData);
-                        commandGroupBox.Enabled = true;
-                    }
-                }));
-            });
+                        consoleTextBox.HideSelection = false;
+                        consoleTextBox.AppendText(line + Environment.NewLine);
+                        var vagrantData = VagrantData.GetVagrantDataParseLine(line);
+                        if (vagrantData != null)
+                        {
+                            UpdaetVagrantData(vagrantData);
+                            commandGroupBox.Enabled = true;
+                        }
+
+                    }));
+                });
+            }
             //実行
             await Task.Run(() =>
             {
                 p.Start();
-                p.BeginOutputReadLine();
+                if (command == "destroy")
+                {
+                    using (var sw = p.StandardInput)
+                    {
+                        if (sw.BaseStream.CanWrite)
+                        {
+                            //sw.WriteLine("N");
+                        }
+                        p.StandardInput.Close();
+                    }
+                    var all = p.StandardOutput.ReadToEnd();
+                    Invoke(new Action(() =>
+                    {
+                        consoleTextBox.HideSelection = false;
+                        consoleTextBox.AppendText(all + Environment.NewLine);
+                    }));
+                }
+                else
+                {
+                    p.BeginOutputReadLine();
+                }
                 p.WaitForExit();
                 p.Close();
             });
