@@ -26,28 +26,6 @@ namespace VagrantWin
             vagrantDataGridView.Columns.Add(column);
             vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
-
-        private void readButton_Click(object sender, EventArgs e)
-        {
-            vagrantfileOpenFileDialog.ShowDialog();
-        }
-
-        private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
-        {
-            vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            commandGroupBox.Enabled = false;
-            ComSpecLines("status");
-        }
-        private void upButton_Click(object sender, EventArgs e)
-        {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("up");
-        }
-        private void haltButton_Click(object sender, EventArgs e)
-        {
-            commandGroupBox.Enabled = false;
-            ComSpecLines("halt");
-        }
         async private void ComSpecLines(string command)
         {
             //Processオブジェクトを作成
@@ -70,13 +48,13 @@ namespace VagrantWin
             {
                 var line = e.Data;
                 if (line == null) return;
-                var vagrantData = GetVagrantDataFromCommand(line);
                 Invoke(new Action(() =>
                 {
                     consoleTextBox.Text += line + Environment.NewLine;
+                    var vagrantData = GetVagrantDataFromLine(line);
                     if (vagrantData != null)
                     {
-                        SetVagrantData(vagrantData, line);
+                        SetVagrantData(vagrantData);
                     }
                 }));
             });
@@ -94,7 +72,7 @@ namespace VagrantWin
             }
         }
 
-        private void SetVagrantData(VagrantData vagrantData, string line)
+        private void SetVagrantData(VagrantData vagrantData)
         {
             var status = "";
             var hit = _vagrantDatas.SingleOrDefault(v => v.name == vagrantData.name);
@@ -127,30 +105,66 @@ namespace VagrantWin
             commandGroupBox.Enabled = true;
         }
 
-        private VagrantData GetVagrantDataFromCommand(string line)
+        private VagrantData GetVagrantDataFromLine(string line)
         {
             //parseの条件式はこれでOKなの？
-            if (line.Contains(' ') && line.Contains('(') && line.Contains(')'))
+            if (!line.Contains(' ')) return null;
+            if (!line.Contains('(')) return null;
+            if (!line.Contains(')')) return null;
+            var preSpace = line.IndexOf(' ');
+            var postSpace = line.LastIndexOf(' ');
+            var preBracket = line.IndexOf('(');
+            var postBracket = line.IndexOf(')');
+            var name = line.Substring(0, preSpace);
+            var status = line.Substring(preSpace, postSpace - preSpace).Trim();
+            var provider = line.Substring(preBracket + 1, postBracket - preBracket - 1);
+
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            if (string.IsNullOrWhiteSpace(status)) return null;
+            if (string.IsNullOrWhiteSpace(provider)) return null;
+
+            var vagrantData = new VagrantData
             {
-                var preSpace = line.IndexOf(' ');
-                var postSpace = line.LastIndexOf(' ');
-                var preBracket = line.IndexOf('(');
-                var postBracket = line.IndexOf(')');
-                var vagrantData = new VagrantData
-                {
-                    check = true,
-                    name = line.Substring(0, preSpace),
-                    status = line.Substring(preSpace, postSpace - preSpace).Trim(),
-                    provider = line.Substring(preBracket + 1, postBracket - preBracket - 1)
-                };
-                if (!string.IsNullOrWhiteSpace(vagrantData.name) && !string.IsNullOrWhiteSpace(vagrantData.status) &&
-                    !string.IsNullOrWhiteSpace(vagrantData.provider))
-                {
-                    return vagrantData;
-                }
-            }
-            return null;
+                check = true,
+                name = name,
+                status = status,
+                provider = provider
+            };
+            return vagrantData;
         }
 
+        private void readButton_Click(object sender, EventArgs e)
+        {
+            vagrantfileOpenFileDialog.ShowDialog();
+        }
+
+        private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+        {
+            vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
+            commandGroupBox.Enabled = false;
+            ComSpecLines("status");
+        }
+        private void upButton_Click(object sender, EventArgs e)
+        {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("up");
+        }
+        private void haltButton_Click(object sender, EventArgs e)
+        {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("halt");
+        }
+
+        private void destroyButton_Click(object sender, EventArgs e)
+        {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("destroy");
+        }
+
+        private void provisionButton_Click(object sender, EventArgs e)
+        {
+            commandGroupBox.Enabled = false;
+            ComSpecLines("provision");
+        }
     }
 }

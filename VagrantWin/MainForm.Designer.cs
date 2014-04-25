@@ -39,15 +39,15 @@
             this.consoleTextBox = new System.Windows.Forms.TextBox();
             this.vagrantfileOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.commandGroupBox = new System.Windows.Forms.GroupBox();
             this.checkDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.commandGroupBox = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.commandGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // vagrantfileTextBox
@@ -109,6 +109,7 @@
             this.destroyButton.TabIndex = 4;
             this.destroyButton.Text = "Destroy";
             this.destroyButton.UseVisualStyleBackColor = true;
+            this.destroyButton.Click += new System.EventHandler(this.destroyButton_Click);
             // 
             // provisionButton
             // 
@@ -121,6 +122,7 @@
             this.provisionButton.TabIndex = 5;
             this.provisionButton.Text = "Provision";
             this.provisionButton.UseVisualStyleBackColor = true;
+            this.provisionButton.Click += new System.EventHandler(this.provisionButton_Click);
             // 
             // vagrantDataGridView
             // 
@@ -169,6 +171,19 @@
             this.statusStrip1.TabIndex = 8;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // commandGroupBox
+            // 
+            this.commandGroupBox.Controls.Add(this.destroyButton);
+            this.commandGroupBox.Controls.Add(this.upButton);
+            this.commandGroupBox.Controls.Add(this.haltButton);
+            this.commandGroupBox.Controls.Add(this.provisionButton);
+            this.commandGroupBox.Location = new System.Drawing.Point(12, 37);
+            this.commandGroupBox.Name = "commandGroupBox";
+            this.commandGroupBox.Size = new System.Drawing.Size(220, 45);
+            this.commandGroupBox.TabIndex = 9;
+            this.commandGroupBox.TabStop = false;
+            this.commandGroupBox.Text = "command";
+            // 
             // checkDataGridViewCheckBoxColumn
             // 
             this.checkDataGridViewCheckBoxColumn.DataPropertyName = "check";
@@ -197,19 +212,6 @@
             // 
             this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
             // 
-            // commandGroupBox
-            // 
-            this.commandGroupBox.Controls.Add(this.destroyButton);
-            this.commandGroupBox.Controls.Add(this.upButton);
-            this.commandGroupBox.Controls.Add(this.haltButton);
-            this.commandGroupBox.Controls.Add(this.provisionButton);
-            this.commandGroupBox.Location = new System.Drawing.Point(12, 37);
-            this.commandGroupBox.Name = "commandGroupBox";
-            this.commandGroupBox.Size = new System.Drawing.Size(220, 45);
-            this.commandGroupBox.TabIndex = 9;
-            this.commandGroupBox.TabStop = false;
-            this.commandGroupBox.Text = "command";
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -224,9 +226,9 @@
             this.Name = "MainForm";
             this.Text = "VagrantWin";
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.commandGroupBox.ResumeLayout(false);
             this.commandGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
