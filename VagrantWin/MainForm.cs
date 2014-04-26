@@ -13,15 +13,16 @@ namespace VagrantWin
     public partial class MainForm : Form
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
+        Process _cancelProcess;
+        private string _command;
 
         public MainForm()
         {
             InitializeComponent();
             vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
-        private Process GetVagrantProcess(string command)
+        private Process GetVagrantProcess()
         {
-            //Processオブジェクトを作成
             var process = new Process
             {
                 StartInfo =
@@ -32,15 +33,15 @@ namespace VagrantWin
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    Arguments = "/c vagrant " + command,
+                    Arguments = "/c vagrant " + _command,
                 }
             };
-            //文字列を一行ずつ取得
             process.OutputDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
                 Invoke(new Action(() =>
                 {
+                    //非同期なのでWaitForExitが終わってからここが書かれるケースもある
                     consoleTextBox.HideSelection = false;
                     consoleTextBox.AppendText(e.Data + Environment.NewLine);
                     var vagrantData = VagrantData.GetVagrantDataParseLine(e.Data);
@@ -68,20 +69,34 @@ namespace VagrantWin
 
         private async void VagrantProcessAsync(string command)
         {
-            if (string.IsNullOrWhiteSpace(vagrantfileTextBox.Text)) return;
+            _command = command;
+            StartVagrantProcess();
+            using (var process = GetVagrantProcess())
+            {
+                _cancelProcess = process;
+                await Task.Run(() => process.WaitForExit());
+                _cancelProcess = null;
+            }
+            EndVagrantProcess();
+        }
+
+        private void StartVagrantProcess()
+        {
+            commandGroupBox.Enabled = false;
+            cancelButton.Visible = true;
+            cancelButton.Enabled = (_command != "status");
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-            commandGroupBox.Enabled = false;
+        }
 
-            using (var process = GetVagrantProcess(command))
-            {
-                await Task.Run(() => process.WaitForExit());
-            }
-
-            commandGroupBox.Enabled = true;
+        private void EndVagrantProcess()
+        {
             consoleTextBox.HideSelection = false;
-            consoleTextBox.AppendText("----------------------------------------------------------------------------------" + Environment.NewLine);
-            if (command != "status")
+            consoleTextBox.AppendText("----------------------------------------------------------------------------------" +
+                                      Environment.NewLine);
+            commandGroupBox.Enabled = true;
+            cancelButton.Visible = false;
+            if (_command != "status")
             {
                 VagrantProcessAsync("status");
             }
@@ -153,13 +168,13 @@ namespace VagrantWin
             }
         }
         #region MessageBoxHack
-        [DllImport("user32.dll", EntryPoint = "PostMessageA")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll", EntryPoint = "PostMessageA")]
         static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
-        [DllImport("user32.dll")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
         static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
         static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
-        [DllImport("user32.dll")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
         static extern int MoveWindow(
         IntPtr hWnd, int x, int y, int w, int h, int repaint);
         [StructLayout(LayoutKind.Sequential)]
@@ -210,6 +225,18 @@ namespace VagrantWin
         {
             var form = new AboutVagrantWinBox();
             form.ShowDialog();
+        }
+
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+            if (_cancelProcess != null)
+            {
+                _cancelProcess.CancelErrorRead();
+                _cancelProcess.CancelOutputRead();
+                _cancelProcess.Close();
+                EndVagrantProcess();
+            }
+
         }
     }
 }

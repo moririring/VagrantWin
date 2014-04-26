@@ -36,6 +36,10 @@
             this.destroyButton = new System.Windows.Forms.Button();
             this.provisionButton = new System.Windows.Forms.Button();
             this.vagrantDataGridView = new System.Windows.Forms.DataGridView();
+            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.consoleTextBox = new System.Windows.Forms.TextBox();
             this.vagrantfileOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -46,14 +50,11 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutVagrantWinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.cancelButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.commandGroupBox.SuspendLayout();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // vagrantfileTextBox
@@ -149,6 +150,28 @@
             this.vagrantDataGridView.RowTemplate.Height = 21;
             this.vagrantDataGridView.Size = new System.Drawing.Size(556, 97);
             this.vagrantDataGridView.TabIndex = 6;
+            // 
+            // nameDataGridViewTextBoxColumn
+            // 
+            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
+            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
+            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
+            // 
+            // statusDataGridViewTextBoxColumn
+            // 
+            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
+            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
+            this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
+            // 
+            // providerDataGridViewTextBoxColumn
+            // 
+            this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
+            this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
+            this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
+            // 
+            // vagrantDataBindingSource
+            // 
+            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
             // 
             // consoleTextBox
             // 
@@ -247,33 +270,25 @@
             this.aboutVagrantWinToolStripMenuItem.Text = "About VagrantWin";
             this.aboutVagrantWinToolStripMenuItem.Click += new System.EventHandler(this.aboutVagrantWinToolStripMenuItem_Click);
             // 
-            // nameDataGridViewTextBoxColumn
+            // cancelButton
             // 
-            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
-            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
-            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
-            // 
-            // statusDataGridViewTextBoxColumn
-            // 
-            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
-            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
-            this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
-            // 
-            // providerDataGridViewTextBoxColumn
-            // 
-            this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
-            this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
-            this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
-            // 
-            // vagrantDataBindingSource
-            // 
-            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
+            this.cancelButton.AutoSize = true;
+            this.cancelButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.cancelButton.Location = new System.Drawing.Point(286, 75);
+            this.cancelButton.Name = "cancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(50, 22);
+            this.cancelButton.TabIndex = 11;
+            this.cancelButton.Text = "Cancel";
+            this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Visible = false;
+            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(580, 409);
+            this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.commandGroupBox);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
@@ -285,11 +300,11 @@
             this.Name = "MainForm";
             this.Text = "VagrantWin";
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.commandGroupBox.ResumeLayout(false);
             this.commandGroupBox.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -318,6 +333,7 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutVagrantWinToolStripMenuItem;
+        private System.Windows.Forms.Button cancelButton;
     }
 }
 
