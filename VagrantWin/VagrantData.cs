@@ -29,6 +29,9 @@ namespace VagrantWin
             if (string.IsNullOrWhiteSpace(name)) return null;
             if (string.IsNullOrWhiteSpace(status)) return null;
             if (string.IsNullOrWhiteSpace(provider)) return null;
+            //パース条件が甘いので、これだけだと色んなものがある
+            //現状はprovider名でチェック
+            if (provider != "virtualbox") return null;
 
             var vagrantData = new VagrantData
             {

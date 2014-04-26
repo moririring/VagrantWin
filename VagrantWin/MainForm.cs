@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -25,6 +26,8 @@ namespace VagrantWin
         async private void ComSpecLines(string command)
         {
             if (string.IsNullOrWhiteSpace(vagrantfileTextBox.Text)) return;
+            consoleTextBox.Focus();
+            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
             commandGroupBox.Enabled = false;
             //Processオブジェクトを作成
             var p = new Process
@@ -37,57 +40,30 @@ namespace VagrantWin
                     RedirectStandardOutput = true,
                     RedirectStandardInput = true,
                     CreateNoWindow = true,
-                    //コマンドラインを指定（"/c"は実行後閉じるために必要）
-                    Arguments = (command != "destroy") ? @"/c vagrant " + command : "/v:on /e:off /k vagrant " + command,
-                    //Arguments = (command != "destroy") ? @"/c vagrant " + command : "",
+                    Arguments = "/c vagrant " + command,
                 }
             };
-            //文字列を非同期で一行ずつ取得
-            if (command != "destroy")
+            //文字列を一行ずつ取得
+            p.OutputDataReceived += (s, e) =>
             {
-                p.OutputDataReceived += (s, e) => Task.Run(() =>
+                if (e.Data == null) return;
+                Invoke(new Action(() =>
                 {
-                    var line = e.Data;
-                    if (line == null) return;
-                    Invoke(new Action(() =>
+                    consoleTextBox.HideSelection = false;
+                    consoleTextBox.AppendText(e.Data + Environment.NewLine);
+                    var vagrantData = VagrantData.GetVagrantDataParseLine(e.Data);
+                    if (vagrantData != null)
                     {
-                        consoleTextBox.HideSelection = false;
-                        consoleTextBox.AppendText(line + Environment.NewLine);
-                        var vagrantData = VagrantData.GetVagrantDataParseLine(line);
-                        if (vagrantData != null)
-                        {
-                            UpdaetVagrantData(vagrantData);
-                            commandGroupBox.Enabled = true;
-                        }
-
-                    }));
-                });
-            }
+                        UpdaetVagrantData(vagrantData);
+                        commandGroupBox.Enabled = true;
+                    }
+                }));
+            };
             //実行
             await Task.Run(() =>
             {
                 p.Start();
-                if (command == "destroy")
-                {
-                    using (var sw = p.StandardInput)
-                    {
-                        if (sw.BaseStream.CanWrite)
-                        {
-                            //sw.WriteLine("N");
-                        }
-                        p.StandardInput.Close();
-                    }
-                    var all = p.StandardOutput.ReadToEnd();
-                    Invoke(new Action(() =>
-                    {
-                        consoleTextBox.HideSelection = false;
-                        consoleTextBox.AppendText(all + Environment.NewLine);
-                    }));
-                }
-                else
-                {
-                    p.BeginOutputReadLine();
-                }
+                p.BeginOutputReadLine();
                 p.WaitForExit();
                 p.Close();
             });
@@ -102,7 +78,7 @@ namespace VagrantWin
 
         private void UpdaetVagrantData(VagrantData vagrantData)
         {
-            //名前があれば更新、なければ追加
+            //既に名前があれば更新、なければ追加
             var hit = _vagrantDatas.SingleOrDefault(v => v.Name == vagrantData.Name);
             if (hit != null)
             {
@@ -117,24 +93,28 @@ namespace VagrantWin
             }
             vagrantDataGridView.Invalidate();
             vagrantDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-
         }
 
         private void SetStatus(string status)
         {
+            upButton.Enabled = false;
+            haltButton.Enabled = false;
+            provisionButton.Enabled = false;
+            destroyButton.Enabled = false;
             if (status == "poweroff")
             {
                 upButton.Enabled = true;
                 destroyButton.Enabled = true;
-                haltButton.Enabled = false;
-                provisionButton.Enabled = false;
             }
             else if (status == "running")
             {
                 haltButton.Enabled = true;
                 provisionButton.Enabled = true;
-                upButton.Enabled = false;
-                destroyButton.Enabled = false;
+                destroyButton.Enabled = true;
+            }
+            else if (status == "not created")
+            {
+                upButton.Enabled = true;
             }
             statusButton.Enabled = true;
         }
@@ -147,8 +127,6 @@ namespace VagrantWin
         private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
             vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            consoleTextBox.Focus();
-            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
             ComSpecLines("status");
         }
         private void statusButton_Click(object sender, EventArgs e)
@@ -156,9 +134,54 @@ namespace VagrantWin
             var button = sender as Button;
             if (button != null)
             {
-                consoleTextBox.Focus();
-                consoleTextBox.Select(consoleTextBox.Text.Length, 0);
                 ComSpecLines(button.Text.ToLower());
+            }
+        }
+        private void destroyButton_Click(object sender, EventArgs e)
+        {
+            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
+            //DialogResult rc = MessageBox.Show(this, "message", "TEST", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (MessageBox.Show("Are you sure to destroy it?", "destroy", MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Warning) == DialogResult.OK)
+            {
+                ComSpecLines(destroyButton.Text.ToLower() + " -f");
+            }
+        }
+        [DllImport("user32.dll", EntryPoint = "PostMessageA")]
+        static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
+        [DllImport("user32.dll")]
+        static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
+        [DllImport("user32.dll")]
+        static extern int MoveWindow(
+        IntPtr hWnd, int x, int y, int w, int h, int repaint);
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+        const int WM_APP = 0x8000;
+        const int WM_APP_CENTERMSG = WM_APP;
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            if (m.Msg == WM_APP_CENTERMSG)
+            {
+                IntPtr hWnd = GetForegroundWindow();
+                if (hWnd != this.Handle)
+                {
+                    RECT r = new RECT();
+                    GetWindowRect(hWnd, ref r);
+                    int w = r.right - r.left;
+                    int h = r.bottom - r.top;
+                    int x = Left + (Width - w) / 2;
+                    int y = Top + (Height - h) / 2;
+                    MoveWindow(hWnd, x, y, w, h, 0);
+                }
             }
         }
     }

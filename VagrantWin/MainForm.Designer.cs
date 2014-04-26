@@ -79,7 +79,7 @@
             this.upButton.AutoSize = true;
             this.upButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.upButton.Enabled = false;
-            this.upButton.Location = new System.Drawing.Point(60, 18);
+            this.upButton.Location = new System.Drawing.Point(60, 17);
             this.upButton.Name = "upButton";
             this.upButton.Size = new System.Drawing.Size(29, 22);
             this.upButton.TabIndex = 2;
@@ -92,7 +92,7 @@
             this.haltButton.AutoSize = true;
             this.haltButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.haltButton.Enabled = false;
-            this.haltButton.Location = new System.Drawing.Point(95, 18);
+            this.haltButton.Location = new System.Drawing.Point(95, 17);
             this.haltButton.Name = "haltButton";
             this.haltButton.Size = new System.Drawing.Size(36, 22);
             this.haltButton.TabIndex = 3;
@@ -105,20 +105,20 @@
             this.destroyButton.AutoSize = true;
             this.destroyButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.destroyButton.Enabled = false;
-            this.destroyButton.Location = new System.Drawing.Point(137, 18);
+            this.destroyButton.Location = new System.Drawing.Point(205, 17);
             this.destroyButton.Name = "destroyButton";
             this.destroyButton.Size = new System.Drawing.Size(55, 22);
             this.destroyButton.TabIndex = 4;
             this.destroyButton.Text = "Destroy";
             this.destroyButton.UseVisualStyleBackColor = true;
-            this.destroyButton.Click += new System.EventHandler(this.statusButton_Click);
+            this.destroyButton.Click += new System.EventHandler(this.destroyButton_Click);
             // 
             // provisionButton
             // 
             this.provisionButton.AutoSize = true;
             this.provisionButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.provisionButton.Enabled = false;
-            this.provisionButton.Location = new System.Drawing.Point(198, 18);
+            this.provisionButton.Location = new System.Drawing.Point(137, 17);
             this.provisionButton.Name = "provisionButton";
             this.provisionButton.Size = new System.Drawing.Size(62, 22);
             this.provisionButton.TabIndex = 5;
