@@ -11,7 +11,9 @@ namespace VagrantWin
 {
     public partial class MainForm : Form
     {
-        readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>(); 
+        readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
+
+        Process _commandLineProcess = new Process();
         public MainForm()
         {
             InitializeComponent();
@@ -32,7 +34,7 @@ namespace VagrantWin
                     WorkingDirectory = Path.GetDirectoryName(vagrantfileTextBox.Text),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    RedirectStandardInput = true,
+                    RedirectStandardError = true,
                     CreateNoWindow = true,
                     Arguments = "/c vagrant " + command,
                 }
@@ -53,11 +55,21 @@ namespace VagrantWin
                     }
                 }));
             };
+            p.ErrorDataReceived += (s, e) =>
+            {
+                if (e.Data == null) return;
+                Invoke(new Action(() =>
+                {
+                    consoleTextBox.HideSelection = false;
+                    consoleTextBox.AppendText(e.Data + Environment.NewLine);
+                }));
+            };
             //実行
             await Task.Run(() =>
             {
                 p.Start();
                 p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
                 p.WaitForExit();
                 p.Close();
             });
