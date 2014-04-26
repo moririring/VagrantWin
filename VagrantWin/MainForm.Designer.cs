@@ -41,11 +41,10 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.commandGroupBox = new System.Windows.Forms.GroupBox();
             this.statusButton = new System.Windows.Forms.Button();
-            this.checkDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).BeginInit();
             this.commandGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
@@ -135,7 +134,6 @@
             this.vagrantDataGridView.AutoGenerateColumns = false;
             this.vagrantDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.vagrantDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.checkDataGridViewCheckBoxColumn,
             this.nameDataGridViewTextBoxColumn,
             this.statusDataGridViewTextBoxColumn,
             this.providerDataGridViewTextBoxColumn});
@@ -201,11 +199,9 @@
             this.statusButton.UseVisualStyleBackColor = true;
             this.statusButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
-            // checkDataGridViewCheckBoxColumn
+            // vagrantDataBindingSource
             // 
-            this.checkDataGridViewCheckBoxColumn.DataPropertyName = "Check";
-            this.checkDataGridViewCheckBoxColumn.HeaderText = "Check";
-            this.checkDataGridViewCheckBoxColumn.Name = "checkDataGridViewCheckBoxColumn";
+            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
             // 
             // nameDataGridViewTextBoxColumn
             // 
@@ -224,10 +220,6 @@
             this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
             this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
             this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
-            // 
-            // vagrantDataBindingSource
-            // 
-            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
             // 
             // MainForm
             // 
@@ -264,12 +256,11 @@
         private System.Windows.Forms.OpenFileDialog vagrantfileOpenFileDialog;
         private System.Windows.Forms.BindingSource vagrantDataBindingSource;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn checkDataGridViewCheckBoxColumn;
+        private System.Windows.Forms.GroupBox commandGroupBox;
+        private System.Windows.Forms.Button statusButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn statusDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn providerDataGridViewTextBoxColumn;
-        private System.Windows.Forms.GroupBox commandGroupBox;
-        private System.Windows.Forms.Button statusButton;
     }
 }
 

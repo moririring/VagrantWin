@@ -7,7 +7,6 @@ namespace VagrantWin
 {
     public class VagrantData
     {
-        public bool Check { get; set; } 
         public string Name { get; set; }
         public string Status { get; set; }
         public string Provider { get; set; }
@@ -35,7 +34,6 @@ namespace VagrantWin
 
             var vagrantData = new VagrantData
             {
-                Check = true,
                 Name = name,
                 Status = status,
                 Provider = provider

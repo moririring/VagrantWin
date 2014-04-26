@@ -15,12 +15,6 @@ namespace VagrantWin
         public MainForm()
         {
             InitializeComponent();
-
-//            var column = new DataGridViewButtonColumn();
-//            column.Name = "ssh";
-//            column.Text = "ssh";
-//            column.UseColumnTextForButtonValue = true;
-//            vagrantDataGridView.Columns.Add(column);
             vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
         async private void ComSpecLines(string command)
@@ -140,7 +134,6 @@ namespace VagrantWin
         private void destroyButton_Click(object sender, EventArgs e)
         {
             PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
-            //DialogResult rc = MessageBox.Show(this, "message", "TEST", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (MessageBox.Show("Are you sure to destroy it?", "destroy", MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning) == DialogResult.OK)
             {
