@@ -59,5 +59,14 @@ namespace VagrantWin.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure to destroy it?.
+        /// </summary>
+        internal static string DestroyMessage {
+            get {
+                return ResourceManager.GetString("DestroyMessage", resourceCulture);
+            }
+        }
     }
 }

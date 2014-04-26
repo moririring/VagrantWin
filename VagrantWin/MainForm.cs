@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VagrantWin.Properties;
 
 namespace VagrantWin
 {
@@ -13,20 +14,15 @@ namespace VagrantWin
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
 
-        Process _commandLineProcess = new Process();
         public MainForm()
         {
             InitializeComponent();
             vagrantDataBindingSource.DataSource = _vagrantDatas;
         }
-        async private void ComSpecLines(string command)
+        private Process GetVagrantProcess(string command)
         {
-            if (string.IsNullOrWhiteSpace(vagrantfileTextBox.Text)) return;
-            consoleTextBox.Focus();
-            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-            commandGroupBox.Enabled = false;
             //Processオブジェクトを作成
-            var p = new Process
+            var process = new Process
             {
                 StartInfo =
                 {
@@ -40,7 +36,7 @@ namespace VagrantWin
                 }
             };
             //文字列を一行ずつ取得
-            p.OutputDataReceived += (s, e) =>
+            process.OutputDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
                 Invoke(new Action(() =>
@@ -51,11 +47,10 @@ namespace VagrantWin
                     if (vagrantData != null)
                     {
                         UpdaetVagrantData(vagrantData);
-                        commandGroupBox.Enabled = true;
                     }
                 }));
             };
-            p.ErrorDataReceived += (s, e) =>
+            process.ErrorDataReceived += (s, e) =>
             {
                 if (e.Data == null) return;
                 Invoke(new Action(() =>
@@ -65,20 +60,30 @@ namespace VagrantWin
                 }));
             };
             //実行
-            await Task.Run(() =>
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            return process;
+        }
+
+        private async void VagrantProcessAsync(string command)
+        {
+            if (string.IsNullOrWhiteSpace(vagrantfileTextBox.Text)) return;
+            consoleTextBox.Focus();
+            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
+            commandGroupBox.Enabled = false;
+
+            using (var process = GetVagrantProcess(command))
             {
-                p.Start();
-                p.BeginOutputReadLine();
-                p.BeginErrorReadLine();
-                p.WaitForExit();
-                p.Close();
-            });
-            //終了待ちしてstatus
+                await Task.Run(() => process.WaitForExit());
+            }
+
+            commandGroupBox.Enabled = true;
             consoleTextBox.HideSelection = false;
             consoleTextBox.AppendText("----------------------------------------------------------------------------------" + Environment.NewLine);
             if (command != "status")
             {
-                ComSpecLines("status");
+                VagrantProcessAsync("status");
             }
         }
 
@@ -136,7 +141,7 @@ namespace VagrantWin
         {
             readButton.Enabled = false;
             vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            ComSpecLines("status");
+            VagrantProcessAsync("status");
             readButton.Enabled = true;
         }
         private void statusButton_Click(object sender, EventArgs e)
@@ -144,7 +149,7 @@ namespace VagrantWin
             var button = sender as Button;
             if (button != null)
             {
-                ComSpecLines(button.Text.ToLower());
+                VagrantProcessAsync(button.Text.ToLower());
             }
         }
         #region MessageBoxHack
@@ -189,10 +194,10 @@ namespace VagrantWin
         private void destroyButton_Click(object sender, EventArgs e)
         {
             PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
-            if (MessageBox.Show("Are you sure to destroy it?", "destroy", MessageBoxButtons.OKCancel,
+            if (MessageBox.Show(Resources.DestroyMessage, @"destroy", MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning) == DialogResult.OK)
             {
-                ComSpecLines(destroyButton.Text.ToLower() + " -f");
+                VagrantProcessAsync(destroyButton.Text.ToLower() + " -f");
             }
         }
 
