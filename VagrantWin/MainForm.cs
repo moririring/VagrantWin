@@ -147,15 +147,7 @@ namespace VagrantWin
                 ComSpecLines(button.Text.ToLower());
             }
         }
-        private void destroyButton_Click(object sender, EventArgs e)
-        {
-            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
-            if (MessageBox.Show("Are you sure to destroy it?", "destroy", MessageBoxButtons.OKCancel,
-                    MessageBoxIcon.Warning) == DialogResult.OK)
-            {
-                ComSpecLines(destroyButton.Text.ToLower() + " -f");
-            }
-        }
+        #region MessageBoxHack
         [DllImport("user32.dll", EntryPoint = "PostMessageA")]
         static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
         [DllImport("user32.dll")]
@@ -191,6 +183,16 @@ namespace VagrantWin
                     int y = Top + (Height - h) / 2;
                     MoveWindow(hWnd, x, y, w, h, 0);
                 }
+            }
+        }
+        #endregion
+        private void destroyButton_Click(object sender, EventArgs e)
+        {
+            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
+            if (MessageBox.Show("Are you sure to destroy it?", "destroy", MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Warning) == DialogResult.OK)
+            {
+                ComSpecLines(destroyButton.Text.ToLower() + " -f");
             }
         }
 
