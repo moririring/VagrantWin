@@ -106,7 +106,7 @@ namespace VagrantWin
                 provisionButton.Enabled = true;
                 destroyButton.Enabled = true;
             }
-            else if (status == "not created")
+            else
             {
                 upButton.Enabled = true;
             }
@@ -115,13 +115,17 @@ namespace VagrantWin
 
         private void readButton_Click(object sender, EventArgs e)
         {
+            consoleTextBox.Focus();
+            consoleTextBox.Select(consoleTextBox.Text.Length, 0);
             vagrantfileOpenFileDialog.ShowDialog();
         }
 
         private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
+            readButton.Enabled = false;
             vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
             ComSpecLines("status");
+            readButton.Enabled = true;
         }
         private void statusButton_Click(object sender, EventArgs e)
         {
@@ -167,7 +171,7 @@ namespace VagrantWin
                 IntPtr hWnd = GetForegroundWindow();
                 if (hWnd != this.Handle)
                 {
-                    RECT r = new RECT();
+                    var r = new RECT();
                     GetWindowRect(hWnd, ref r);
                     int w = r.right - r.left;
                     int h = r.bottom - r.top;
@@ -176,6 +180,17 @@ namespace VagrantWin
                     MoveWindow(hWnd, x, y, w, h, 0);
                 }
             }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void aboutVagrantWinToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new AboutVagrantWinBox();
+            form.ShowDialog();
         }
     }
 }
