@@ -1,7 +1,6 @@
-�using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using VagrantWin.Properties;
 
@@ -11,9 +10,8 @@ namespace VagrantWin
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
 
-        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+
         private readonly VagrantWrapper _vagrantWrapper = new VagrantWrapper();
-        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
         private readonly MessageBoxReplacer _replacer;
 
         private const string BAR = "----------------------------------------------------------------------------------";
@@ -49,7 +47,7 @@ namespace VagrantWin
                     return;
                 }
 
-                //非同期なのでWaitForExitが終わってからここが書かれるケースもあ�                consoleTextBox.HideSelection = false;
+                consoleTextBox.HideSelection = false;
                 consoleTextBox.AppendText(e.Message + Environment.NewLine);
                 var vagrantData = VagrantData.GetVagrantDataParseLine(e.Message);
                 if (vagrantData != null)
@@ -93,7 +91,6 @@ namespace VagrantWin
 
         private void UpdaetVagrantData(VagrantData vagrantData)
         {
-            //既に名前があれ�更新、なければ追�
             var hit = _vagrantDatas.SingleOrDefault(v => v.Name == vagrantData.Name);
             if (hit != null)
             {
@@ -189,9 +186,6 @@ namespace VagrantWin
         {
             _vagrantWrapper.CancelCurrentVagrantProcess();
         }
-
-
-
 
         public event EventHandler<WindowMessageEventArgs> WindowMessageReceived;
 
