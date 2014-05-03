@@ -11,7 +11,7 @@ namespace VagrantWin
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
 
-        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+        private readonly VagrantWrapper _vagrantWrapper = new VagrantWrapper();
 
         private string VagrantFilePath
         {
@@ -71,7 +71,7 @@ namespace VagrantWin
         {
             commandGroupBox.Enabled = false;
             cancelButton.Visible = true;
-            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != "status");
+            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != VagrantCommand.Status);
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
         }
@@ -140,7 +140,7 @@ namespace VagrantWin
             readButton.Enabled = false;
             VagrantFilePath = vagrantfileOpenFileDialog.FileName;
 
-            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantCommand.Status);
 
             readButton.Enabled = true;
         }
@@ -150,8 +150,10 @@ namespace VagrantWin
             if (button != null)
             {
                 var commandName = button.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
+
+            MessageBox.Show("Called!");
         }
 
         private void destroyButton_Click(object sender, EventArgs e)
@@ -161,8 +163,9 @@ namespace VagrantWin
                     MessageBoxIcon.Warning) == DialogResult.OK)
             {
                 var commandName = destroyButton.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
+
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)

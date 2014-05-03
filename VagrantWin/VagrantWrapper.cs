@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VagrantWin
 {
-    internal class VagratWrapper
+    public class VagrantWrapper
     {
         private Process _currentProcess;
 
@@ -41,9 +41,9 @@ namespace VagrantWin
             if (handler != null) handler(this, EventArgs.Empty);
         }
 
-        public string CurrentCommand { get; private set; }
+        public VagrantCommand CurrentCommand { get; private set; }
 
-        private Process StartVagrantProcess(string vagrantFilePath, string command)
+        private Process StartVagrantProcess(string vagrantFilePath, VagrantCommand command)
         {
             var process = new Process
             {
@@ -55,7 +55,7 @@ namespace VagrantWin
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    Arguments = "/c vagrant " + command,
+                    Arguments = "/c vagrant " + ToCommandString(command),
                 }
             };
             process.OutputDataReceived += (_, e) =>
@@ -75,7 +75,12 @@ namespace VagrantWin
             return process;
         }
 
-        public async void StartVagrantProcessAsync(string vagrantFilePath, string command)
+        public static string ToCommandString(VagrantCommand command)
+        {
+            return command.ToString().ToLower() + (command == VagrantCommand.Destroy ? " -f" : "");
+        }
+
+        public async void StartVagrantProcessAsync(string vagrantFilePath, VagrantCommand command)
         {
             CurrentCommand = command;
 
@@ -100,5 +105,26 @@ namespace VagrantWin
                 _currentProcess = null;
             }   
         }
+
+        public static VagrantCommand ToCommand(string commandName)
+        {
+            VagrantCommand ret;
+            if (Enum.TryParse(commandName,true, out ret))
+            {
+                return ret;
+            }
+
+            return VagrantCommand.Empty;
+        }
+    }
+
+    public enum VagrantCommand
+    {
+        Empty,
+        Status,
+        Up,
+        Provision,
+        Halt,
+        Destroy
     }
 }
