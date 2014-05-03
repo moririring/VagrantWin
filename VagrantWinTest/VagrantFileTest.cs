@@ -6,7 +6,7 @@ using VagrantWin;
 namespace VagrantWinTest
 {
     [TestClass]
-    public class UnitTest1
+    public class VagrantFileTest
     {
         readonly List<VagrantData> _vagrantDatas = new List<VagrantData>();
 
