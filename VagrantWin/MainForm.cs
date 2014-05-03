@@ -280,7 +280,6 @@ namespace VagrantWin
                 boxFileToolStripSplitButton.Text = string.Format("0/0Mbyte");
 
                 downloadClient = new WebClient();
-                //イベントハンドラの作成
                 downloadClient.DownloadProgressChanged += (s, ea) =>
                 {
                     boxFileToolStripSplitButton.Text = string.Format("{0}/{1}Mbyte", ea.BytesReceived / 1024 / 1024, ea.TotalBytesToReceive / 1024 / 1024);
@@ -304,10 +303,6 @@ namespace VagrantWin
                 downloadClient.DownloadFileAsync(uri, fileName);
             }
         }
-        private void boxFileToolStripSplitButton_ButtonClick(object sender, EventArgs e)
-        {
-        }
-
         private void boxFileCancelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             downloadClient.CancelAsync();

@@ -306,7 +306,6 @@
             this.boxFileToolStripSplitButton.Size = new System.Drawing.Size(61, 20);
             this.boxFileToolStripSplitButton.Text = "Cancel";
             this.boxFileToolStripSplitButton.Visible = false;
-            this.boxFileToolStripSplitButton.ButtonClick += new System.EventHandler(this.boxFileToolStripSplitButton_ButtonClick);
             // 
             // nameDataGridViewTextBoxColumn
             // 

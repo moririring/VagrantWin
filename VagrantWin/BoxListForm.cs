@@ -26,7 +26,7 @@ namespace VagrantWin
 
         private void BoxListForm_Load(object sender, EventArgs e)
         {
-            var uiTask = TaskScheduler.FromCurrentSynchronizationContext();
+            var html = "";
             Task.Run(() =>
             {
                 using (var wc = new WebClient())
@@ -35,43 +35,45 @@ namespace VagrantWin
                     {
                         using (var sr = new StreamReader(st))
                         {
-                            var html = sr.ReadToEnd();
-                            var lines = html.Replace(Environment.NewLine, "\n").Split('\n').Where(x => x.Contains("* "));
-                            foreach (var line in lines)
-                            {
-                                var data = new VagrantBoxData
-                                {
-                                    Name = line.Substring(line.IndexOf("[") + 1, line.IndexOf("]") - line.IndexOf("[") - 1),
-                                    Url = line.Substring(line.IndexOf("(") + 1, line.IndexOf(")") - line.IndexOf("(") - 1),
-                                };
-                                if (line.Contains("virtualbox"))
-                                {
-                                    data.Provider = "VirtualBox";
-                                }
-                                else if (line.Contains("vmware"))
-                                {
-                                    data.Provider = "VMWare";
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                                new Task(() => _vagrantBoxDatasDatas.Add(data)).Start(uiTask);
-                            }
+                            html = sr.ReadToEnd();
                         }
                     }
                 }
             }).ContinueWith(t =>
             {
-                vagrantBoxDataGridView.Invalidate();
-                vagrantBoxDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+                if (html != "")
+                {
+                    var lines = html.Replace(Environment.NewLine, "\n").Split('\n');
+                    foreach (var line in lines.Where(x => x.Contains("* ")))
+                    {
+                        var data = new VagrantBoxData
+                        {
+                            Name = line.Substring(line.IndexOf("[") + 1, line.IndexOf("]") - line.IndexOf("[") - 1),
+                            Url = line.Substring(line.IndexOf("(") + 1, line.IndexOf(")") - line.IndexOf("(") - 1),
+                        };
+                        if (line.Contains("virtualbox"))
+                        {
+                            data.Provider = "VirtualBox";
+                        }
+                        else if (line.Contains("vmware"))
+                        {
+                            data.Provider = "VMWare";
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                        _vagrantBoxDatasDatas.Add(data);
+                    }
+                    vagrantBoxDataGridView.Invalidate();
+                    vagrantBoxDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+                }
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         private void vagrantBoxDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             var dgv = sender as DataGridView;
-            //"Button"列ならば、ボタンがクリックされた
             if (dgv.Columns[e.ColumnIndex].Name == "Download")
             {
                 _selectURL = dgv["Url", e.RowIndex].Value.ToString();

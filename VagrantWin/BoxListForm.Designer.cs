@@ -30,11 +30,11 @@
         {
             this.components = new System.ComponentModel.Container();
             this.vagrantBoxDataGridView = new System.Windows.Forms.DataGridView();
-            this.vagrantBoxDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.Download = new System.Windows.Forms.DataGridViewButtonColumn();
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.vagrantBoxDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.vagrantBoxDataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantBoxDataBindingSource)).BeginInit();
             this.SuspendLayout();
@@ -55,13 +55,9 @@
             this.vagrantBoxDataGridView.Location = new System.Drawing.Point(0, 0);
             this.vagrantBoxDataGridView.Name = "vagrantBoxDataGridView";
             this.vagrantBoxDataGridView.RowTemplate.Height = 21;
-            this.vagrantBoxDataGridView.Size = new System.Drawing.Size(345, 261);
+            this.vagrantBoxDataGridView.Size = new System.Drawing.Size(345, 482);
             this.vagrantBoxDataGridView.TabIndex = 0;
             this.vagrantBoxDataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.vagrantBoxDataGridView_CellContentClick);
-            // 
-            // vagrantBoxDataBindingSource
-            // 
-            this.vagrantBoxDataBindingSource.DataSource = typeof(VagrantWin.VagrantBoxData);
             // 
             // Download
             // 
@@ -89,11 +85,15 @@
             this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
             this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
             // 
+            // vagrantBoxDataBindingSource
+            // 
+            this.vagrantBoxDataBindingSource.DataSource = typeof(VagrantWin.VagrantBoxData);
+            // 
             // BoxListForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(345, 261);
+            this.ClientSize = new System.Drawing.Size(345, 482);
             this.Controls.Add(this.vagrantBoxDataGridView);
             this.Name = "BoxListForm";
             this.Text = "BoxListForm";
