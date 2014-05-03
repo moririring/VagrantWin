@@ -13,6 +13,7 @@ namespace VagrantWin
     public partial class MainForm : Form
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
+        readonly BindingList<VagrantBoxData> _vagrantBoxDatas = new BindingList<VagrantBoxData>();
         private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
         private const string BAR = "----------------------------------------------------------------------------------";
 
@@ -30,6 +31,7 @@ namespace VagrantWin
         {
             InitializeComponent();
             vagrantDataBindingSource.DataSource = _vagrantDatas;
+            vagrantBoxDataBindingSource.DataSource = _vagrantBoxDatas;
 
             _vagrantWrapper.OutputMessageReceived += VagrantWrapper_OnOutputMessageReceived;
 
@@ -77,8 +79,16 @@ namespace VagrantWin
                 {
                     UpdaetVagrantData(vagrantData);
                 }
+                var vagrantBoxData = VagrantBoxData.GetVagrantBoxDataParseLine(e.Message);
+                if (vagrantBoxData != null)
+                {
+                    UpdaetVagrantBoxData(vagrantBoxData);
+                }
+                removeButton.Enabled = (_vagrantBoxDatas.Count > 0);
+                initButton.Enabled = (_vagrantBoxDatas.Count > 0);
             });
         }
+
 
         private void VagrantWrapper_OnErrorMessageReceived(object _, VagrantMessageEventHandler e)
         {
@@ -111,6 +121,21 @@ namespace VagrantWin
             cancelButton.Visible = false;
         }
 
+        private void UpdaetVagrantBoxData(VagrantBoxData vagrantBoxData)
+        {
+            //既に名前があれば更新、なければ追加
+            var hit = _vagrantBoxDatas.SingleOrDefault(v => v.Name == vagrantBoxData.Name);
+            if (hit != null)
+            {
+                hit.Provider = vagrantBoxData.Provider;
+            }
+            else
+            {
+                _vagrantBoxDatas.Add(vagrantBoxData);
+            }
+            vagrantBoxDataGridView.Invalidate();
+            vagrantBoxDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+        }
 
         private void UpdaetVagrantData(VagrantData vagrantData)
         {
@@ -180,7 +205,10 @@ namespace VagrantWin
                     _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
                     readButton.Enabled = true;
                 }
+                //
                 boxButton.Enabled = true;
+                addButton.Enabled = true;
+                listButton.Enabled = true;
             }
         }
         private void statusButton_Click(object sender, EventArgs e)
@@ -312,6 +340,36 @@ namespace VagrantWin
             if (Directory.Exists(vagrantPathTextBox.Text))
             {
                 Process.Start(vagrantPathTextBox.Text);
+            }
+        }
+
+        private void addButton_Click(object sender, EventArgs e)
+        {
+            var form = new AddForm();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, string.Format("box add {0} {1}", form._name, form._url));
+            }
+        }
+
+        private void listButton_Click(object sender, EventArgs e)
+        {
+            _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "box list");
+        }
+
+        private void removeButton_Click(object sender, EventArgs e)
+        {
+            foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
+            {
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "box remove " + boxData.Name);
+            }
+        }
+
+        private void initButton_Click(object sender, EventArgs e)
+        {
+            foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
+            {
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "init " + boxData.Name);
             }
         }
 

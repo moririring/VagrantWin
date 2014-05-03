@@ -45,12 +45,24 @@ namespace VagrantWin
 
         private Process StartVagrantProcess(string vagrantFilePath, string command)
         {
+            var workDirectory = "";
+            if (File.Exists(vagrantFilePath))
+            {
+                workDirectory = Path.GetDirectoryName(vagrantFilePath);
+            }
+            else if (Directory.Exists(vagrantFilePath))
+            {
+                workDirectory = vagrantFilePath;
+            }
+
             var process = new Process
             {
+
+
                 StartInfo =
                 {
                     FileName = Environment.GetEnvironmentVariable("ComSpec")  ?? "",
-                    WorkingDirectory = Path.GetDirectoryName(vagrantFilePath) ?? "",
+                    WorkingDirectory = workDirectory ?? "",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
