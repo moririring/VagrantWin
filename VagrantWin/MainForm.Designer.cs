@@ -41,7 +41,6 @@
             this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.consoleTextBox = new System.Windows.Forms.TextBox();
-            this.vagrantfileOpenFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.commandGroupBox = new System.Windows.Forms.GroupBox();
             this.statusButton = new System.Windows.Forms.Button();
@@ -189,11 +188,6 @@
             this.consoleTextBox.TabIndex = 1;
             this.consoleTextBox.WordWrap = false;
             // 
-            // vagrantfileOpenFileDialog
-            // 
-            this.vagrantfileOpenFileDialog.FileName = "openFileDialog1";
-            this.vagrantfileOpenFileDialog.Filter = "Vagrantfileファイル|Vagrantfile";
-            // 
             // statusStrip1
             // 
             this.statusStrip1.Location = new System.Drawing.Point(0, 387);
@@ -323,7 +317,6 @@
         private System.Windows.Forms.Button provisionButton;
         private System.Windows.Forms.DataGridView vagrantDataGridView;
         private System.Windows.Forms.TextBox consoleTextBox;
-        private System.Windows.Forms.OpenFileDialog vagrantfileOpenFileDialog;
         private System.Windows.Forms.BindingSource vagrantDataBindingSource;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.GroupBox commandGroupBox;

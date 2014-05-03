@@ -44,16 +44,13 @@ namespace VagrantWin
             if (Directory.Exists(Settings.Default.VagrantPath))
             {
                 vagrantfileTextBox.Text = Settings.Default.VagrantPath;
-
             }
-
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             Settings.Default.VagrantPath = vagrantfileTextBox.Text;
             Settings.Default.Save();
-
         }
 
 
@@ -156,7 +153,6 @@ namespace VagrantWin
         {
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-
             if (Directory.Exists(vagrantfileTextBox.Text))
             {
                 vagrantfileFolderBrowserDialog.SelectedPath = vagrantfileTextBox.Text;
@@ -165,27 +161,21 @@ namespace VagrantWin
             {
                 vagrantfileTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
             }
-            //vagrantfileOpenFileDialog.ShowDialog();
         }
         private void vagrantfileTextBox_TextChanged(object sender, EventArgs e)
         {
-            var vagrantfile = Path.Combine(vagrantfileTextBox.Text, "vagrantfile");
-            if (File.Exists(vagrantfile))
+            if (Directory.Exists(vagrantfileTextBox.Text))
             {
-                readButton.Enabled = false;
-                VagrantFilePath = vagrantfile;
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
-                readButton.Enabled = true;
+                var vagrantfile = Path.Combine(vagrantfileTextBox.Text, "vagrantfile");
+                if (File.Exists(vagrantfile))
+                {
+                    readButton.Enabled = false;
+                    VagrantFilePath = vagrantfile;
+                    _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+                    readButton.Enabled = true;
+                }
             }
         }
-
-//        private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
-//        {
-//            readButton.Enabled = false;
-//            VagrantFilePath = vagrantfileOpenFileDialog.FileName;
-//            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
-//            readButton.Enabled = true;
-//        }
         private void statusButton_Click(object sender, EventArgs e)
         {
             var button = sender as Button;
@@ -195,7 +185,6 @@ namespace VagrantWin
                 _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
             }
         }
-
         private void destroyButton_Click(object sender, EventArgs e)
         {
             PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
