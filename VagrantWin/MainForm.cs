@@ -1,10 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using VagrantWin.Properties;
 
@@ -13,94 +10,80 @@ namespace VagrantWin
     public partial class MainForm : Form
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
-        Process _cancelProcess;
-        private string _command;
+
+        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+
+        private string VagrantFilePath
+        {
+            get { return vagrantfileTextBox.Text; }
+            set { vagrantfileTextBox.Text = value; }
+        }
 
         public MainForm()
         {
             InitializeComponent();
             vagrantDataBindingSource.DataSource = _vagrantDatas;
+
+            _vagrantWrapper.OutputMessageReceived += VagrantWrapper_OnOutputMessageReceived;
+
+            _vagrantWrapper.ErrorMessageReceived += VagrantWrapper_OnErrorMessageReceived;
+
+            _vagrantWrapper.VagrantProcessStarted += VagrantWrapper_OnVagrantProcessStarted;
+
+            _vagrantWrapper.VagrantProcessCompleted += VagrantWrapper_OnVagrantProcessCompleted;
         }
-        private Process GetVagrantProcess()
+
+        private void VagrantWrapper_OnOutputMessageReceived(object _, VagrantMessageEventHandler e)
         {
-            var process = new Process
+            this.SafeInvoke(() =>
             {
-                StartInfo =
+                if (string.IsNullOrEmpty(e.Message))
                 {
-                    FileName = Environment.GetEnvironmentVariable("ComSpec"),
-                    WorkingDirectory = Path.GetDirectoryName(vagrantfileTextBox.Text),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    Arguments = "/c vagrant " + _command,
+                    return;
                 }
-            };
-            process.OutputDataReceived += (s, e) =>
-            {
-                if (e.Data == null) return;
-                Invoke(new Action(() =>
+
+                //非同期なのでWaitForExitが終わってからここが書かれるケースもある
+                consoleTextBox.HideSelection = false;
+                consoleTextBox.AppendText(e.Message + Environment.NewLine);
+                var vagrantData = VagrantData.GetVagrantDataParseLine(e.Message);
+                if (vagrantData != null)
                 {
-                    //非同期なのでWaitForExitが終わってからここが書かれるケースもある
-                    consoleTextBox.HideSelection = false;
-                    consoleTextBox.AppendText(e.Data + Environment.NewLine);
-                    var vagrantData = VagrantData.GetVagrantDataParseLine(e.Data);
-                    if (vagrantData != null)
-                    {
-                        UpdaetVagrantData(vagrantData);
-                    }
-                }));
-            };
-            process.ErrorDataReceived += (s, e) =>
-            {
-                if (e.Data == null) return;
-                Invoke(new Action(() =>
-                {
-                    consoleTextBox.HideSelection = false;
-                    consoleTextBox.AppendText(e.Data + Environment.NewLine);
-                }));
-            };
-            //実行
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            return process;
+                    UpdaetVagrantData(vagrantData);
+                }
+            });
         }
 
-        private async void VagrantProcessAsync(string command)
+        private void VagrantWrapper_OnErrorMessageReceived(object _, VagrantMessageEventHandler e)
         {
-            _command = command;
-            StartVagrantProcess();
-            using (var process = GetVagrantProcess())
+            this.SafeInvoke(() =>
             {
-                _cancelProcess = process;
-                await Task.Run(() => process.WaitForExit());
-                _cancelProcess = null;
-            }
-            EndVagrantProcess();
+                if (string.IsNullOrEmpty(e.Message))
+                {
+                    return;
+                }
+
+                consoleTextBox.HideSelection = false;
+                consoleTextBox.AppendText(e.Message + Environment.NewLine);
+            });
         }
 
-        private void StartVagrantProcess()
+        private void VagrantWrapper_OnVagrantProcessStarted(object _, EventArgs __)
         {
             commandGroupBox.Enabled = false;
             cancelButton.Visible = true;
-            cancelButton.Enabled = (_command != "status");
+            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != "status");
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
         }
 
-        private void EndVagrantProcess()
+        private void VagrantWrapper_OnVagrantProcessCompleted(object _, EventArgs __)
         {
             consoleTextBox.HideSelection = false;
-            consoleTextBox.AppendText("----------------------------------------------------------------------------------" +
-                                      Environment.NewLine);
+            consoleTextBox.AppendText(BAR + Environment.NewLine);
             commandGroupBox.Enabled = true;
             cancelButton.Visible = false;
-            if (_command != "status")
-            {
-                VagrantProcessAsync("status");
-            }
         }
+
 
         private void UpdaetVagrantData(VagrantData vagrantData)
         {
@@ -155,8 +138,10 @@ namespace VagrantWin
         private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
         {
             readButton.Enabled = false;
-            vagrantfileTextBox.Text = vagrantfileOpenFileDialog.FileName;
-            VagrantProcessAsync("status");
+            VagrantFilePath = vagrantfileOpenFileDialog.FileName;
+
+            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+
             readButton.Enabled = true;
         }
         private void statusButton_Click(object sender, EventArgs e)
@@ -164,19 +149,50 @@ namespace VagrantWin
             var button = sender as Button;
             if (button != null)
             {
-                VagrantProcessAsync(button.Text.ToLower());
+                var commandName = button.Text.ToLower();
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
             }
         }
+
+        private void destroyButton_Click(object sender, EventArgs e)
+        {
+            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
+            if (MessageBox.Show(Resources.DestroyMessage, @"destroy", MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Warning) == DialogResult.OK)
+            {
+                var commandName = destroyButton.Text.ToLower();
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+            }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void aboutVagrantWinToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new AboutVagrantWinBox();
+            form.ShowDialog();
+        }
+
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+            _vagrantWrapper.CancelCurrentVagrantProcess();
+        }
+
         #region MessageBoxHack
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll", EntryPoint = "PostMessageA")]
         static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
         static extern IntPtr GetForegroundWindow();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
         static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
-        static extern int MoveWindow(
-        IntPtr hWnd, int x, int y, int w, int h, int repaint);
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"),
+         DllImport("user32.dll")]
+        private static extern int MoveWindow(IntPtr hWnd, int x, int y, int w, int h, int repaint);
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
         {
@@ -187,6 +203,8 @@ namespace VagrantWin
         }
         const int WM_APP = 0x8000;
         const int WM_APP_CENTERMSG = WM_APP;
+        private const string BAR = "----------------------------------------------------------------------------------";
+
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
@@ -206,37 +224,5 @@ namespace VagrantWin
             }
         }
         #endregion
-        private void destroyButton_Click(object sender, EventArgs e)
-        {
-            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
-            if (MessageBox.Show(Resources.DestroyMessage, @"destroy", MessageBoxButtons.OKCancel,
-                    MessageBoxIcon.Warning) == DialogResult.OK)
-            {
-                VagrantProcessAsync(destroyButton.Text.ToLower() + " -f");
-            }
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
-        private void aboutVagrantWinToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var form = new AboutVagrantWinBox();
-            form.ShowDialog();
-        }
-
-        private void cancelButton_Click(object sender, EventArgs e)
-        {
-            if (_cancelProcess != null)
-            {
-                _cancelProcess.CancelErrorRead();
-                _cancelProcess.CancelOutputRead();
-                _cancelProcess.Close();
-                EndVagrantProcess();
-            }
-
-        }
     }
 }
