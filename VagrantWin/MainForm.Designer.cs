@@ -29,17 +29,14 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.vagrantfileTextBox = new System.Windows.Forms.TextBox();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            this.vagrantPathTextBox = new System.Windows.Forms.TextBox();
             this.readButton = new System.Windows.Forms.Button();
             this.upButton = new System.Windows.Forms.Button();
             this.haltButton = new System.Windows.Forms.Button();
             this.destroyButton = new System.Windows.Forms.Button();
             this.provisionButton = new System.Windows.Forms.Button();
             this.vagrantDataGridView = new System.Windows.Forms.DataGridView();
-            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.consoleTextBox = new System.Windows.Forms.TextBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.commandGroupBox = new System.Windows.Forms.GroupBox();
@@ -51,22 +48,33 @@
             this.aboutVagrantWinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelButton = new System.Windows.Forms.Button();
             this.vagrantfileFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.boxButton = new System.Windows.Forms.Button();
+            this.boxFileNameToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.boxFileToolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.boxFileToolStripSplitButton = new System.Windows.Forms.ToolStripSplitButton();
+            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.statusDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.providerDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.vagrantDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.boxFileCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
+            this.statusStrip1.SuspendLayout();
             this.commandGroupBox.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
-            // vagrantfileTextBox
+            // vagrantPathTextBox
             // 
-            this.vagrantfileTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.vagrantPathTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.vagrantfileTextBox.Location = new System.Drawing.Point(12, 33);
-            this.vagrantfileTextBox.Name = "vagrantfileTextBox";
-            this.vagrantfileTextBox.ReadOnly = true;
-            this.vagrantfileTextBox.Size = new System.Drawing.Size(517, 19);
-            this.vagrantfileTextBox.TabIndex = 0;
-            this.vagrantfileTextBox.TextChanged += new System.EventHandler(this.vagrantfileTextBox_TextChanged);
+            this.vagrantPathTextBox.Location = new System.Drawing.Point(12, 33);
+            this.vagrantPathTextBox.Name = "vagrantPathTextBox";
+            this.vagrantPathTextBox.ReadOnly = true;
+            this.vagrantPathTextBox.Size = new System.Drawing.Size(517, 19);
+            this.vagrantPathTextBox.TabIndex = 0;
+            this.vagrantPathTextBox.TextChanged += new System.EventHandler(this.vagrantfileTextBox_TextChanged);
             // 
             // readButton
             // 
@@ -152,28 +160,6 @@
             this.vagrantDataGridView.Size = new System.Drawing.Size(556, 97);
             this.vagrantDataGridView.TabIndex = 6;
             // 
-            // nameDataGridViewTextBoxColumn
-            // 
-            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
-            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
-            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
-            // 
-            // statusDataGridViewTextBoxColumn
-            // 
-            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
-            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
-            this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
-            // 
-            // providerDataGridViewTextBoxColumn
-            // 
-            this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
-            this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
-            this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
-            // 
-            // vagrantDataBindingSource
-            // 
-            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
-            // 
             // consoleTextBox
             // 
             this.consoleTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -190,6 +176,10 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.boxFileToolStripProgressBar,
+            this.boxFileNameToolStripStatusLabel,
+            this.boxFileToolStripSplitButton});
             this.statusStrip1.Location = new System.Drawing.Point(0, 387);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(580, 22);
@@ -278,11 +268,88 @@
             this.cancelButton.Visible = false;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
+            // boxButton
+            // 
+            this.boxButton.AutoSize = true;
+            this.boxButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.boxButton.Enabled = false;
+            this.boxButton.Location = new System.Drawing.Point(518, 75);
+            this.boxButton.Name = "boxButton";
+            this.boxButton.Size = new System.Drawing.Size(35, 22);
+            this.boxButton.TabIndex = 12;
+            this.boxButton.Text = "Box";
+            this.boxButton.UseVisualStyleBackColor = true;
+            this.boxButton.Click += new System.EventHandler(this.boxButton_Click);
+            // 
+            // boxFileNameToolStripStatusLabel
+            // 
+            this.boxFileNameToolStripStatusLabel.Name = "boxFileNameToolStripStatusLabel";
+            this.boxFileNameToolStripStatusLabel.Size = new System.Drawing.Size(62, 17);
+            this.boxFileNameToolStripStatusLabel.Text = "download";
+            this.boxFileNameToolStripStatusLabel.Visible = false;
+            // 
+            // boxFileToolStripProgressBar
+            // 
+            this.boxFileToolStripProgressBar.Name = "boxFileToolStripProgressBar";
+            this.boxFileToolStripProgressBar.Size = new System.Drawing.Size(100, 16);
+            this.boxFileToolStripProgressBar.Visible = false;
+            // 
+            // boxFileToolStripSplitButton
+            // 
+            this.boxFileToolStripSplitButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.boxFileToolStripSplitButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.boxFileCancelToolStripMenuItem,
+            this.openFolderToolStripMenuItem});
+            this.boxFileToolStripSplitButton.Image = ((System.Drawing.Image)(resources.GetObject("boxFileToolStripSplitButton.Image")));
+            this.boxFileToolStripSplitButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.boxFileToolStripSplitButton.Name = "boxFileToolStripSplitButton";
+            this.boxFileToolStripSplitButton.Size = new System.Drawing.Size(61, 20);
+            this.boxFileToolStripSplitButton.Text = "Cancel";
+            this.boxFileToolStripSplitButton.Visible = false;
+            this.boxFileToolStripSplitButton.ButtonClick += new System.EventHandler(this.boxFileToolStripSplitButton_ButtonClick);
+            // 
+            // nameDataGridViewTextBoxColumn
+            // 
+            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
+            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
+            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
+            // 
+            // statusDataGridViewTextBoxColumn
+            // 
+            this.statusDataGridViewTextBoxColumn.DataPropertyName = "Status";
+            this.statusDataGridViewTextBoxColumn.HeaderText = "Status";
+            this.statusDataGridViewTextBoxColumn.Name = "statusDataGridViewTextBoxColumn";
+            // 
+            // providerDataGridViewTextBoxColumn
+            // 
+            this.providerDataGridViewTextBoxColumn.DataPropertyName = "Provider";
+            this.providerDataGridViewTextBoxColumn.HeaderText = "Provider";
+            this.providerDataGridViewTextBoxColumn.Name = "providerDataGridViewTextBoxColumn";
+            // 
+            // vagrantDataBindingSource
+            // 
+            this.vagrantDataBindingSource.DataSource = typeof(VagrantWin.VagrantData);
+            // 
+            // boxFileCancelToolStripMenuItem
+            // 
+            this.boxFileCancelToolStripMenuItem.Name = "boxFileCancelToolStripMenuItem";
+            this.boxFileCancelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.boxFileCancelToolStripMenuItem.Text = "Cancel";
+            this.boxFileCancelToolStripMenuItem.Click += new System.EventHandler(this.boxFileCancelToolStripMenuItem_Click);
+            // 
+            // openFolderToolStripMenuItem
+            // 
+            this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
+            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openFolderToolStripMenuItem.Text = "Open Folder";
+            this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(580, 409);
+            this.Controls.Add(this.boxButton);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.commandGroupBox);
             this.Controls.Add(this.statusStrip1);
@@ -290,18 +357,20 @@
             this.Controls.Add(this.consoleTextBox);
             this.Controls.Add(this.vagrantDataGridView);
             this.Controls.Add(this.readButton);
-            this.Controls.Add(this.vagrantfileTextBox);
+            this.Controls.Add(this.vagrantPathTextBox);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "VagrantWin";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.commandGroupBox.ResumeLayout(false);
             this.commandGroupBox.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -309,7 +378,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox vagrantfileTextBox;
+        private System.Windows.Forms.TextBox vagrantPathTextBox;
         private System.Windows.Forms.Button readButton;
         private System.Windows.Forms.Button upButton;
         private System.Windows.Forms.Button haltButton;
@@ -331,6 +400,12 @@
         private System.Windows.Forms.ToolStripMenuItem aboutVagrantWinToolStripMenuItem;
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.FolderBrowserDialog vagrantfileFolderBrowserDialog;
+        private System.Windows.Forms.Button boxButton;
+        private System.Windows.Forms.ToolStripStatusLabel boxFileNameToolStripStatusLabel;
+        private System.Windows.Forms.ToolStripProgressBar boxFileToolStripProgressBar;
+        private System.Windows.Forms.ToolStripSplitButton boxFileToolStripSplitButton;
+        private System.Windows.Forms.ToolStripMenuItem boxFileCancelToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openFolderToolStripMenuItem;
     }
 }
 

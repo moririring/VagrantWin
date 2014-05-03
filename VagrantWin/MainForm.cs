@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using VagrantWin.Properties;
@@ -14,11 +16,15 @@ namespace VagrantWin
         private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
         private const string BAR = "----------------------------------------------------------------------------------";
 
-        private string VagrantFilePath
-        {
-            get { return vagrantfileTextBox.Text; }
-            set { vagrantfileTextBox.Text = value; }
-        }
+
+        //vagrantPathTextBox.Textはパス、VagrantFilePathはvagrantファイル
+        private string VagrantFilePath { set; get; }
+
+//        private string VagrantFilePath
+//        {
+//            get { return vagrantPathTextBox.Text; }
+//            set { vagrantPathTextBox.Text = value; }
+//        }
 
         public MainForm()
         {
@@ -43,13 +49,13 @@ namespace VagrantWin
             }
             if (Directory.Exists(Settings.Default.VagrantPath))
             {
-                vagrantfileTextBox.Text = Settings.Default.VagrantPath;
+                vagrantPathTextBox.Text = Settings.Default.VagrantPath;
             }
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Settings.Default.VagrantPath = vagrantfileTextBox.Text;
+            Settings.Default.VagrantPath = vagrantPathTextBox.Text;
             Settings.Default.Save();
         }
 
@@ -153,20 +159,20 @@ namespace VagrantWin
         {
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-            if (Directory.Exists(vagrantfileTextBox.Text))
+            if (Directory.Exists(vagrantPathTextBox.Text))
             {
-                vagrantfileFolderBrowserDialog.SelectedPath = vagrantfileTextBox.Text;
+                vagrantfileFolderBrowserDialog.SelectedPath = vagrantPathTextBox.Text;
             }
             if (vagrantfileFolderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
-                vagrantfileTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
+                vagrantPathTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
             }
         }
         private void vagrantfileTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (Directory.Exists(vagrantfileTextBox.Text))
+            if (Directory.Exists(vagrantPathTextBox.Text))
             {
-                var vagrantfile = Path.Combine(vagrantfileTextBox.Text, "vagrantfile");
+                var vagrantfile = Path.Combine(vagrantPathTextBox.Text, "vagrantfile");
                 if (File.Exists(vagrantfile))
                 {
                     readButton.Enabled = false;
@@ -174,6 +180,7 @@ namespace VagrantWin
                     _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
                     readButton.Enabled = true;
                 }
+                boxButton.Enabled = true;
             }
         }
         private void statusButton_Click(object sender, EventArgs e)
@@ -254,6 +261,64 @@ namespace VagrantWin
             }
         }
         #endregion
+
+
+        WebClient downloadClient = null;
+        private void boxButton_Click(object sender, EventArgs e)
+        {
+            boxButton.Enabled = false;
+            var form = new BoxListForm();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                var fileName = Path.Combine(vagrantPathTextBox.Text, Path.GetFileName(form._selectURL));
+                var uri = new Uri(form._selectURL);
+
+                boxFileNameToolStripStatusLabel.Visible = true;
+                boxFileToolStripSplitButton.Visible = true;
+                boxFileToolStripProgressBar.Visible = true;
+                boxFileNameToolStripStatusLabel.Text = Path.GetFileName(form._selectURL);
+                boxFileToolStripSplitButton.Text = string.Format("0/0Mbyte");
+
+                downloadClient = new WebClient();
+                //イベントハンドラの作成
+                downloadClient.DownloadProgressChanged += (s, ea) =>
+                {
+                    boxFileToolStripSplitButton.Text = string.Format("{0}/{1}Mbyte", ea.BytesReceived / 1024 / 1024, ea.TotalBytesToReceive / 1024 / 1024);
+                    boxFileToolStripProgressBar.Value = (int)ea.ProgressPercentage;
+                };
+                downloadClient.DownloadFileCompleted += (s, ea) =>
+                {
+                    if (ea.Error != null)
+                        Console.WriteLine("エラー:{0}", ea.Error.Message);
+                    else if (ea.Cancelled)
+                        Console.WriteLine("キャンセルされました。");
+                    else
+                        Console.WriteLine("ダウンロードが完了しました。");
+
+                    boxFileNameToolStripStatusLabel.Visible = false;
+                    boxFileToolStripSplitButton.Visible = false;
+                    boxFileToolStripProgressBar.Visible = false;
+                    boxButton.Enabled = true;
+
+                };
+                downloadClient.DownloadFileAsync(uri, fileName);
+            }
+        }
+        private void boxFileToolStripSplitButton_ButtonClick(object sender, EventArgs e)
+        {
+        }
+
+        private void boxFileCancelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            downloadClient.CancelAsync();
+        }
+        private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(vagrantPathTextBox.Text))
+            {
+                Process.Start(vagrantPathTextBox.Text);
+            }
+        }
 
     }
 }
