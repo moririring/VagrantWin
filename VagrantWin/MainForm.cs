@@ -1,17 +1,20 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using VagrantWin.Properties;
 
 namespace VagrantWin
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, IWindowMessageHook
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
 
-        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+
+        private readonly VagrantWrapper _vagrantWrapper = new VagrantWrapper();
+        private readonly MessageBoxReplacer _replacer;
+
+        private const string BAR = "----------------------------------------------------------------------------------";
 
         private string VagrantFilePath
         {
@@ -31,6 +34,8 @@ namespace VagrantWin
             _vagrantWrapper.VagrantProcessStarted += VagrantWrapper_OnVagrantProcessStarted;
 
             _vagrantWrapper.VagrantProcessCompleted += VagrantWrapper_OnVagrantProcessCompleted;
+
+            _replacer = new MessageBoxReplacer(this);
         }
 
         private void VagrantWrapper_OnOutputMessageReceived(object _, VagrantMessageEventHandler e)
@@ -42,7 +47,6 @@ namespace VagrantWin
                     return;
                 }
 
-                //非同期なのでWaitForExitが終わってからここが書かれるケースもある
                 consoleTextBox.HideSelection = false;
                 consoleTextBox.AppendText(e.Message + Environment.NewLine);
                 var vagrantData = VagrantData.GetVagrantDataParseLine(e.Message);
@@ -71,7 +75,7 @@ namespace VagrantWin
         {
             commandGroupBox.Enabled = false;
             cancelButton.Visible = true;
-            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != "status");
+            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != VagrantCommand.Status);
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
         }
@@ -87,7 +91,6 @@ namespace VagrantWin
 
         private void UpdaetVagrantData(VagrantData vagrantData)
         {
-            //既に名前があれば更新、なければ追加
             var hit = _vagrantDatas.SingleOrDefault(v => v.Name == vagrantData.Name);
             if (hit != null)
             {
@@ -140,7 +143,7 @@ namespace VagrantWin
             readButton.Enabled = false;
             VagrantFilePath = vagrantfileOpenFileDialog.FileName;
 
-            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantCommand.Status);
 
             readButton.Enabled = true;
         }
@@ -150,19 +153,22 @@ namespace VagrantWin
             if (button != null)
             {
                 var commandName = button.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
+
+            MessageBox.Show("Called!");
         }
 
         private void destroyButton_Click(object sender, EventArgs e)
         {
-            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
+            _replacer.ReplaceNextMessageBoxPosition();
             if (MessageBox.Show(Resources.DestroyMessage, @"destroy", MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning) == DialogResult.OK)
             {
                 var commandName = destroyButton.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
+
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -181,48 +187,19 @@ namespace VagrantWin
             _vagrantWrapper.CancelCurrentVagrantProcess();
         }
 
-        #region MessageBoxHack
+        public event EventHandler<WindowMessageEventArgs> WindowMessageReceived;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll", EntryPoint = "PostMessageA")]
-        static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
-        static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"),
-         DllImport("user32.dll")]
-        private static extern int MoveWindow(IntPtr hWnd, int x, int y, int w, int h, int repaint);
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
+        protected virtual void OnWindowMessageReceived(Message msg)
         {
-            public int left;
-            public int top;
-            public int right;
-            public int bottom;
+            var handler = WindowMessageReceived;
+            if (handler != null) handler(this, new WindowMessageEventArgs(msg, this));
         }
-        const int WM_APP = 0x8000;
-        const int WM_APP_CENTERMSG = WM_APP;
-        private const string BAR = "----------------------------------------------------------------------------------";
 
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
-            if (m.Msg == WM_APP_CENTERMSG)
-            {
-                IntPtr hWnd = GetForegroundWindow();
-                if (hWnd != this.Handle)
-                {
-                    var r = new RECT();
-                    GetWindowRect(hWnd, ref r);
-                    int w = r.right - r.left;
-                    int h = r.bottom - r.top;
-                    int x = Left + (Width - w) / 2;
-                    int y = Top + (Height - h) / 2;
-                    MoveWindow(hWnd, x, y, w, h, 0);
-                }
-            }
+
+            OnWindowMessageReceived(m);
         }
-        #endregion
     }
 }
