@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -10,8 +11,8 @@ namespace VagrantWin
     public partial class MainForm : Form
     {
         readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
-
         private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+        private const string BAR = "----------------------------------------------------------------------------------";
 
         private string VagrantFilePath
         {
@@ -32,6 +33,29 @@ namespace VagrantWin
 
             _vagrantWrapper.VagrantProcessCompleted += VagrantWrapper_OnVagrantProcessCompleted;
         }
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            if (Settings.Default.IsUpgrade == false)
+            {
+                Settings.Default.Upgrade();
+                Settings.Default.IsUpgrade = true;
+                Settings.Default.Save();
+            }
+            if (Directory.Exists(Settings.Default.VagrantPath))
+            {
+                vagrantfileTextBox.Text = Settings.Default.VagrantPath;
+
+            }
+
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Settings.Default.VagrantPath = vagrantfileTextBox.Text;
+            Settings.Default.Save();
+
+        }
+
 
         private void VagrantWrapper_OnOutputMessageReceived(object _, VagrantMessageEventHandler e)
         {
@@ -132,18 +156,36 @@ namespace VagrantWin
         {
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-            vagrantfileOpenFileDialog.ShowDialog();
-        }
 
-        private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+            if (Directory.Exists(vagrantfileTextBox.Text))
+            {
+                vagrantfileFolderBrowserDialog.SelectedPath = vagrantfileTextBox.Text;
+            }
+            if (vagrantfileFolderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                vagrantfileTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
+            }
+            //vagrantfileOpenFileDialog.ShowDialog();
+        }
+        private void vagrantfileTextBox_TextChanged(object sender, EventArgs e)
         {
-            readButton.Enabled = false;
-            VagrantFilePath = vagrantfileOpenFileDialog.FileName;
-
-            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
-
-            readButton.Enabled = true;
+            var vagrantfile = Path.Combine(vagrantfileTextBox.Text, "vagrantfile");
+            if (File.Exists(vagrantfile))
+            {
+                readButton.Enabled = false;
+                VagrantFilePath = vagrantfile;
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+                readButton.Enabled = true;
+            }
         }
+
+//        private void vagrantfileOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+//        {
+//            readButton.Enabled = false;
+//            VagrantFilePath = vagrantfileOpenFileDialog.FileName;
+//            _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+//            readButton.Enabled = true;
+//        }
         private void statusButton_Click(object sender, EventArgs e)
         {
             var button = sender as Button;
@@ -203,7 +245,6 @@ namespace VagrantWin
         }
         const int WM_APP = 0x8000;
         const int WM_APP_CENTERMSG = WM_APP;
-        private const string BAR = "----------------------------------------------------------------------------------";
 
         protected override void WndProc(ref Message m)
         {
@@ -224,5 +265,6 @@ namespace VagrantWin
             }
         }
         #endregion
+
     }
 }

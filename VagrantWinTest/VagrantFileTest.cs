@@ -9,6 +9,7 @@ namespace VagrantWinTest
     public class VagrantFileTest
     {
         readonly List<VagrantData> _vagrantDatas = new List<VagrantData>();
+        readonly List<VagrantBoxData> _vagrantBoxDatas = new List<VagrantBoxData>();
 
         [TestMethod]
         public void VagrantDataの追加処理()
@@ -18,6 +19,15 @@ namespace VagrantWinTest
             _vagrantDatas.Add(data);
 
             Assert.IsTrue(_vagrantDatas[0].Name == data.Name);
+        }
+        [TestMethod]
+        public void VagrantDBoxataの追加処理()
+        {
+            var data = new VagrantBoxData();
+            data.Name = "default";
+            _vagrantBoxDatas.Add(data);
+
+            Assert.IsTrue(_vagrantBoxDatas[0].Name == data.Name);
         }
 
         [TestMethod]

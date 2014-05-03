@@ -51,6 +51,7 @@
             this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutVagrantWinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.vagrantfileFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).BeginInit();
             this.commandGroupBox.SuspendLayout();
@@ -66,6 +67,7 @@
             this.vagrantfileTextBox.ReadOnly = true;
             this.vagrantfileTextBox.Size = new System.Drawing.Size(517, 19);
             this.vagrantfileTextBox.TabIndex = 0;
+            this.vagrantfileTextBox.TextChanged += new System.EventHandler(this.vagrantfileTextBox_TextChanged);
             // 
             // readButton
             // 
@@ -191,7 +193,6 @@
             // 
             this.vagrantfileOpenFileDialog.FileName = "openFileDialog1";
             this.vagrantfileOpenFileDialog.Filter = "Vagrantfileファイル|Vagrantfile";
-            this.vagrantfileOpenFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.vagrantfileOpenFileDialog_FileOk);
             // 
             // statusStrip1
             // 
@@ -299,6 +300,8 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "VagrantWin";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataGridView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.vagrantDataBindingSource)).EndInit();
             this.commandGroupBox.ResumeLayout(false);
@@ -334,6 +337,7 @@
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutVagrantWinToolStripMenuItem;
         private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.FolderBrowserDialog vagrantfileFolderBrowserDialog;
     }
 }
 

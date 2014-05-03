@@ -53,6 +53,12 @@
     <Compile Include="AboutVagrantWinBox.Designer.cs">
       <DependentUpon>AboutVagrantWinBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="BoxListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BoxListForm.Designer.cs">
+      <DependentUpon>BoxListForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ControlExtensions.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -62,11 +68,15 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VagrantBoxData.cs" />
     <Compile Include="VagrantData.cs" />
     <Compile Include="VagrantMessageEventHandler.cs" />
     <Compile Include="VagratWrapper.cs" />
     <EmbeddedResource Include="AboutVagrantWinBox.resx">
       <DependentUpon>AboutVagrantWinBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BoxListForm.resx">
+      <DependentUpon>BoxListForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
