@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(BoxListForm));
             this.vagrantBoxDataGridView = new System.Windows.Forms.DataGridView();
             this.Download = new System.Windows.Forms.DataGridViewButtonColumn();
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -95,6 +96,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(345, 482);
             this.Controls.Add(this.vagrantBoxDataGridView);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "BoxListForm";
             this.Text = "BoxListForm";
             this.Load += new System.EventHandler(this.BoxListForm_Load);

@@ -24,6 +24,10 @@ namespace VagrantWin
             //                        {
             //                            data.Provider = "VMWare";
             //                        }
+            else
+            {
+                return false;
+            }
             return true;
         }
 

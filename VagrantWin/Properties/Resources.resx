@@ -121,7 +121,7 @@
     <value>https://raw.githubusercontent.com/opscode/bento/master/README.md</value>
   </data>
   <data name="CommandLineEOF" xml:space="preserve">
-    <value>"----------------------------------------------------------------------------------"</value>
+    <value>----------------------------------------------------------------------------------</value>
   </data>
   <data name="DestroyMessage" xml:space="preserve">
     <value>Are you sure to destroy it?</value>

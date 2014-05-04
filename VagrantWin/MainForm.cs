@@ -335,9 +335,12 @@ namespace VagrantWin
                     boxFileToolStripSplitButton.Visible = false;
                     boxFileToolStripProgressBar.Visible = false;
                     boxButton.Enabled = true;
-
                 };
                 downloadClient.DownloadFileAsync(uri, fileName);
+            }
+            else
+            {
+                boxButton.Enabled = true;
             }
         }
         private void boxFileCancelToolStripMenuItem_Click(object sender, EventArgs e)

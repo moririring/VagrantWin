@@ -110,6 +110,7 @@ namespace VagrantWin
                 _currentProcess.Close();
 
                 _currentProcess = null;
+                OnVagrantProcessCompleted();
             }   
         }
     }

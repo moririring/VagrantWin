@@ -148,10 +148,28 @@
   <metadata name="vagrantBoxDataBindingSource.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>920, 17</value>
   </metadata>
-  <metadata name="vagrantBoxDataBindingSource.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>920, 17</value>
-  </metadata>
-  <metadata name="vagrantDataBindingSource.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>222, 17</value>
-  </metadata>
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAD6//v/+v/6////+//9/vr/+v////r//////////Pz8//v////6////+//8//z/+v/+/fn////+////
+        /P/6/vn/8/r1//r/+//+//v//P37//v9/v/4+Pj///zz////+P/6+/f/+P75//n99//+//r///79//r6
+        +v/29vb//f////v//v/8/v7///7////8/v///f/////5////7P///+j////y////9v////n///34///+
+        /f///v////z///35///9/////f////38/////f7///z1////6//fxJL/oIVM/+vXp////+P////0////
+        /P///////fz////8////+////fz///3+///7///////2////4/+acjj/rHwq/9GePv+vex3/z6Ve////
+        6v//+fb///3////+///+//3//f/8///+///+/v7/9/z6////6//hv4T/sH4r/72GJf/VmS//9LNG/96p
+        T//qyp/////0///6+//9/////f/7//3/+P////n////5//399////+n/pngq/76FIv/ot1v///+2///a
+        ef/irVb/x59e////4P////f/9/v8//3/+//6//b////4////+P////T/9dyy/699Jf/TmS//37FS//nM
+        cf+odBb/6rVa/9SgTf//7rL////x//v////7/vz////8///9//////j////n/8GcZP+4hi7/8rtT/+64
+        U//YoT7/v4Yj/9qfPP/wsk7/5LZp////6//7+/v///7////+/////P/////2////3P+UaSD/w48x///N
+        aP/ir1H/5rNX/76IKv/AhCT/46E4/8eRPP///+P////3///9/v/8+P3///v/////8f/jwIH/s4Im/9ad
+        NP/tuFf/s41F////zv+abiH/0pxF/+2sSf/nrFb/7syX////6f////j////////8/P///+3/o346/7aE
+        JP/xtlL/3qtV/97Fk////+D/0q1x///ckP+9hC7/57Fe/9ava//jyp7////0//7+/v///+7/8+XB/4xp
+        J//IlkP/3aZR/8KVUv///+P////s////2/+KYyX/mHAv/9StY//GnU7/hGUm////7////v/////w/42G
+        Zf/mzZv////O///ssf/SsIX////1///+9v///+j/tJpy//Lcsv///9P/99eW/86zgP////T//Pv///z9
+        9P/18+j/9e3c///x2////OX////y///+///6+fv///73////9f/8+ev/6uXW//zw3v//+ev///v6//39
+        ///9/////f////37+////Pv////7///9+f///f//+/3////+///6/Pz/+v////r////69vv///3////9
+        ///6+v//AACsQQAArEEAAKxBAACsQQAArEEAAKxBAACsQQAArEEAAKxBAACsQQAArEEAAKxBAACsQQAA
+        rEEAAKxBAACsQQ==
+</value>
+  </data>
 </root>
