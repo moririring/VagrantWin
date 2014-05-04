@@ -70,6 +70,15 @@ namespace VagrantWin.Properties {
         }
         
         /// <summary>
+        ///   &quot;----------------------------------------------------------------------------------&quot; に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string CommandLineEOF {
+            get {
+                return ResourceManager.GetString("CommandLineEOF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Are you sure to destroy it? に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string DestroyMessage {

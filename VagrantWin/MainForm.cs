@@ -12,13 +12,10 @@ namespace VagrantWin
 {
     public partial class MainForm : Form
     {
-        readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
-        readonly BindingList<VagrantBoxData> _vagrantBoxDatas = new BindingList<VagrantBoxData>();
+        private readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
+        private readonly BindingList<VagrantBoxData> _vagrantBoxDatas = new BindingList<VagrantBoxData>();
         private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
-        private const string BAR = "----------------------------------------------------------------------------------";
-
-
-        //vagrantPathTextBox.Textはパス、VagrantFilePathはvagrantファイル
+        //vagrantDirectoryTextBox.Textはディレクトリ、VagrantFilePathはファイル
         private string VagrantFilePath { set; get; }
 
 //        private string VagrantFilePath
@@ -26,7 +23,6 @@ namespace VagrantWin
 //            get { return vagrantPathTextBox.Text; }
 //            set { vagrantPathTextBox.Text = value; }
 //        }
-
         public MainForm()
         {
             InitializeComponent();
@@ -51,13 +47,13 @@ namespace VagrantWin
             }
             if (Directory.Exists(Settings.Default.VagrantPath))
             {
-                vagrantPathTextBox.Text = Settings.Default.VagrantPath;
+                vagrantDirectoryTextBox.Text = Settings.Default.VagrantPath;
             }
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Settings.Default.VagrantPath = vagrantPathTextBox.Text;
+            Settings.Default.VagrantPath = vagrantDirectoryTextBox.Text;
             Settings.Default.Save();
         }
 
@@ -108,6 +104,7 @@ namespace VagrantWin
         private void VagrantWrapper_OnVagrantProcessStarted(object _, EventArgs __)
         {
             commandGroupBox.Enabled = false;
+            boxCommandGroupBox.Enabled = false;
             cancelButton.Visible = true;
             cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != "status");
             consoleTextBox.Focus();
@@ -117,9 +114,14 @@ namespace VagrantWin
         private void VagrantWrapper_OnVagrantProcessCompleted(object _, EventArgs __)
         {
             consoleTextBox.HideSelection = false;
-            consoleTextBox.AppendText(BAR + Environment.NewLine);
+            consoleTextBox.AppendText(Resources.CommandLineEOF + Environment.NewLine);
             commandGroupBox.Enabled = true;
+            boxCommandGroupBox.Enabled = true;
             cancelButton.Visible = false;
+            if (_vagrantWrapper.CurrentCommand.Contains("init"))
+            {
+                CheckVagrantFile();
+            }
         }
 
         private void UpdaetVagrantBoxData(VagrantBoxData vagrantBoxData)
@@ -180,38 +182,44 @@ namespace VagrantWin
             }
             statusButton.Enabled = true;
         }
+        private void CheckVagrantFile()
+        {
+            var vagrantfile = Path.Combine(vagrantDirectoryTextBox.Text, "vagrantfile");
+            if (File.Exists(vagrantfile))
+            {
+                readButton.Enabled = false;
+                commandTabControl.SelectedIndex = 1;
+                VagrantFilePath = vagrantfile;
+                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+                readButton.Enabled = true;
+            }
+            //
+            boxButton.Enabled = true;
+            addButton.Enabled = true;
+            listButton.Enabled = true;
+        }
 
         private void readButton_Click(object sender, EventArgs e)
         {
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
-            if (Directory.Exists(vagrantPathTextBox.Text))
+            if (Directory.Exists(vagrantDirectoryTextBox.Text))
             {
-                vagrantfileFolderBrowserDialog.SelectedPath = vagrantPathTextBox.Text;
+                vagrantfileFolderBrowserDialog.SelectedPath = vagrantDirectoryTextBox.Text;
             }
             if (vagrantfileFolderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
-                vagrantPathTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
+                vagrantDirectoryTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
             }
         }
         private void vagrantfileTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (Directory.Exists(vagrantPathTextBox.Text))
+            if (Directory.Exists(vagrantDirectoryTextBox.Text))
             {
-                var vagrantfile = Path.Combine(vagrantPathTextBox.Text, "vagrantfile");
-                if (File.Exists(vagrantfile))
-                {
-                    readButton.Enabled = false;
-                    VagrantFilePath = vagrantfile;
-                    _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
-                    readButton.Enabled = true;
-                }
-                //
-                boxButton.Enabled = true;
-                addButton.Enabled = true;
-                listButton.Enabled = true;
+                CheckVagrantFile();
             }
         }
+
         private void statusButton_Click(object sender, EventArgs e)
         {
             var button = sender as Button;
@@ -299,7 +307,7 @@ namespace VagrantWin
             var form = new BoxListForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                var fileName = Path.Combine(vagrantPathTextBox.Text, Path.GetFileName(form.SelectUrl));
+                var fileName = Path.Combine(vagrantDirectoryTextBox.Text, Path.GetFileName(form.SelectUrl));
                 var uri = new Uri(form.SelectUrl);
 
                 boxFileNameToolStripStatusLabel.Visible = true;
@@ -338,9 +346,9 @@ namespace VagrantWin
         }
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(vagrantPathTextBox.Text))
+            if (Directory.Exists(vagrantDirectoryTextBox.Text))
             {
-                Process.Start(vagrantPathTextBox.Text);
+                Process.Start(vagrantDirectoryTextBox.Text);
             }
         }
 
@@ -349,20 +357,20 @@ namespace VagrantWin
             var form = new AddForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, string.Format("box add {0} {1}", form._name, form._url));
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, string.Format("box add {0} {1}", form._name, form._url));
             }
         }
 
         private void listButton_Click(object sender, EventArgs e)
         {
-            _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "box list");
+            _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "box list");
         }
 
         private void removeButton_Click(object sender, EventArgs e)
         {
             foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "box remove " + boxData.Name);
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "box remove " + boxData.Name);
             }
         }
 
@@ -370,7 +378,7 @@ namespace VagrantWin
         {
             foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantPathTextBox.Text, "init " + boxData.Name);
+                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "init " + boxData.Name);
             }
         }
 

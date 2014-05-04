@@ -19,7 +19,6 @@ namespace VagrantWin
             InitializeComponent();
             vagrantBoxDataBindingSource.DataSource = _vagrantBoxDatasDatas;
         }
-
         private void BoxListForm_Load(object sender, EventArgs e)
         {
             var rawText = "";
@@ -27,13 +26,21 @@ namespace VagrantWin
             {
                 using (var wc = new WebClient())
                 {
-                    using (var st = wc.OpenRead(Resources.BentoReadmeRawURL))
+                    try
                     {
-                        if (st == null) return;
-                        using (var sr = new StreamReader(st))
+                        using (var st = wc.OpenRead(Resources.BentoReadmeRawURL))
                         {
-                            rawText = sr.ReadToEnd();
+                            if (st == null) return;
+                            using (var sr = new StreamReader(st))
+                            {
+                                rawText = sr.ReadToEnd();
+                            }
                         }
+                    }
+                    //OpenRead失敗時のエラーメッセージ
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
                     }
                 }
             }).ContinueWith(t =>
