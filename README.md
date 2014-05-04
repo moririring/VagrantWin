@@ -8,4 +8,4 @@ VagrantWin
 ![ScreenShot](Vagrant4.jpg)
 
 AppVeyor
-https://github.com/moririring/VagrantWin/blob/master/README.md
+https://ci.appveyor.com/project/moririring/vagrantwin
