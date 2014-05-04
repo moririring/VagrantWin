@@ -33,19 +33,19 @@ namespace VagrantWinTest
         [TestMethod]
         public void 適当な文字列を渡してパースに失敗()
         {
-            Assert.IsTrue(VagrantData.GetVagrantDataParseLine("a") == null);
+            Assert.IsTrue(VagrantData.GetVagrantDataParseCommandLine("a") == null);
         }
         [TestMethod]
         public void ちゃんとした文字列でもprovider名が違ったらパースに失敗()
         {
             //virtualbox
-            Assert.IsTrue(VagrantData.GetVagrantDataParseLine("a (b) ") == null);
+            Assert.IsTrue(VagrantData.GetVagrantDataParseCommandLine("a (b) ") == null);
         }
         [TestMethod]
         public void ちゃんとした文字列でprovider名がvirtualboxの時だけ成功()
         {
             //virtualbox
-            Assert.IsTrue(VagrantData.GetVagrantDataParseLine("HogeName Status (virtualbox) ") != null);
+            Assert.IsTrue(VagrantData.GetVagrantDataParseCommandLine("HogeName Status (virtualbox) ") != null);
         }
     }
 }

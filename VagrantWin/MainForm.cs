@@ -74,13 +74,14 @@ namespace VagrantWin
                 //非同期なのでWaitForExitが終わってからここが書かれるケースもある
                 consoleTextBox.HideSelection = false;
                 consoleTextBox.AppendText(e.Message + Environment.NewLine);
-                var vagrantData = VagrantData.GetVagrantDataParseLine(e.Message);
-                if (vagrantData != null)
+
+                var vagrantData = new VagrantData();
+                if (vagrantData.GetVagrantDataParseCommandLine(e.Message))
                 {
                     UpdaetVagrantData(vagrantData);
                 }
-                var vagrantBoxData = VagrantBoxData.GetVagrantBoxDataParseLine(e.Message);
-                if (vagrantBoxData != null)
+                var vagrantBoxData = new VagrantBoxData();
+                if (vagrantBoxData.GetVagrantBoxDataParseCommandLine(e.Message))
                 {
                     UpdaetVagrantBoxData(vagrantBoxData);
                 }
@@ -298,13 +299,13 @@ namespace VagrantWin
             var form = new BoxListForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                var fileName = Path.Combine(vagrantPathTextBox.Text, Path.GetFileName(form._selectURL));
-                var uri = new Uri(form._selectURL);
+                var fileName = Path.Combine(vagrantPathTextBox.Text, Path.GetFileName(form.SelectUrl));
+                var uri = new Uri(form.SelectUrl);
 
                 boxFileNameToolStripStatusLabel.Visible = true;
                 boxFileToolStripSplitButton.Visible = true;
                 boxFileToolStripProgressBar.Visible = true;
-                boxFileNameToolStripStatusLabel.Text = Path.GetFileName(form._selectURL);
+                boxFileNameToolStripStatusLabel.Text = Path.GetFileName(form.SelectUrl);
                 boxFileToolStripSplitButton.Text = string.Format("0/0Mbyte");
 
                 downloadClient = new WebClient();

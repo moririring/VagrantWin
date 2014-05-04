@@ -1,22 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VagrantWin.Properties;
 
 namespace VagrantWin
 {
     public partial class BoxListForm : Form
     {
         readonly BindingList<VagrantBoxData> _vagrantBoxDatasDatas = new BindingList<VagrantBoxData>();
-        public string _selectURL { set; get; }
+        public string SelectUrl { set; get; }
 
         public BoxListForm()
         {
@@ -26,44 +22,32 @@ namespace VagrantWin
 
         private void BoxListForm_Load(object sender, EventArgs e)
         {
-            var html = "";
+            var rawText = "";
             Task.Run(() =>
             {
                 using (var wc = new WebClient())
                 {
-                    using (var st = wc.OpenRead("https://raw.githubusercontent.com/opscode/bento/master/README.md"))
+                    using (var st = wc.OpenRead(Resources.BentoReadmeRawURL))
                     {
+                        if (st == null) return;
                         using (var sr = new StreamReader(st))
                         {
-                            html = sr.ReadToEnd();
+                            rawText = sr.ReadToEnd();
                         }
                     }
                 }
             }).ContinueWith(t =>
             {
-                if (html != "")
+                if (rawText != "")
                 {
-                    var lines = html.Replace(Environment.NewLine, "\n").Split('\n');
+                    var lines = rawText.Replace(Environment.NewLine, "\n").Split('\n');
                     foreach (var line in lines.Where(x => x.Contains("* ")))
                     {
-                        var data = new VagrantBoxData
+                        var data = new VagrantBoxData();
+                        if (data.GetVagrantBoxDataParseBentoFile(line))
                         {
-                            Name = line.Substring(line.IndexOf("[") + 1, line.IndexOf("]") - line.IndexOf("[") - 1),
-                            Url = line.Substring(line.IndexOf("(") + 1, line.IndexOf(")") - line.IndexOf("(") - 1),
-                        };
-                        if (line.Contains("virtualbox"))
-                        {
-                            data.Provider = "VirtualBox";
+                            _vagrantBoxDatasDatas.Add(data);
                         }
-                        else if (line.Contains("vmware"))
-                        {
-                            data.Provider = "VMWare";
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                        _vagrantBoxDatasDatas.Add(data);
                     }
                     vagrantBoxDataGridView.Invalidate();
                     vagrantBoxDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
@@ -74,10 +58,10 @@ namespace VagrantWin
         private void vagrantBoxDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             var dgv = sender as DataGridView;
-            if (dgv.Columns[e.ColumnIndex].Name == "Download")
+            if (dgv != null && dgv.Columns[e.ColumnIndex].Name == "Download")
             {
-                _selectURL = dgv["Url", e.RowIndex].Value.ToString();
-                this.DialogResult = DialogResult.OK;
+                SelectUrl = dgv["Url", e.RowIndex].Value.ToString();
+                DialogResult = DialogResult.OK;
             }
         }
 

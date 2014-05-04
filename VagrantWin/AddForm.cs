@@ -26,8 +26,8 @@ namespace VagrantWin
             var form = new BoxListForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                nameTextBox.Text = Path.GetFileNameWithoutExtension(form._selectURL);
-                urlTextBox.Text = form._selectURL;
+                nameTextBox.Text = Path.GetFileNameWithoutExtension(form.SelectUrl);
+                urlTextBox.Text = form.SelectUrl;
             }
         }
 

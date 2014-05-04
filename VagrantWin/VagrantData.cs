@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
 namespace VagrantWin
 {
@@ -11,12 +8,11 @@ namespace VagrantWin
         public string Status { get; set; }
         public string Provider { get; set; }
 
-        static public VagrantData GetVagrantDataParseLine(string line)
+        public bool GetVagrantDataParseCommandLine(string line)
         {
-            if (!line.Contains(' ')) return null;
-            if (!line.Contains('(')) return null;
-            if (!line.Contains(')')) return null;
-            //こんなparseで大丈夫か？
+            if (!line.Contains(' ')) return false;
+            if (!line.Contains('(')) return false;
+            if (!line.Contains(')')) return false;
             var preSpace = line.IndexOf(' ');
             var postSpace = line.LastIndexOf(' ');
             var preBracket = line.IndexOf('(');
@@ -24,21 +20,16 @@ namespace VagrantWin
             var name = line.Substring(0, preSpace);
             var status = line.Substring(preSpace, postSpace - preSpace).Trim();
             var provider = line.Substring(preBracket + 1, postBracket - preBracket - 1);
-
-            if (string.IsNullOrWhiteSpace(name)) return null;
-            if (string.IsNullOrWhiteSpace(status)) return null;
-            if (string.IsNullOrWhiteSpace(provider)) return null;
-            //パース条件が甘いので、これだけだと色んなものがある
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            if (string.IsNullOrWhiteSpace(status)) return false;
+            if (string.IsNullOrWhiteSpace(provider)) return false;
             //現状はprovider名でチェック
-            if (provider != "virtualbox") return null;
+            if (provider != "virtualbox") return false;
 
-            var vagrantData = new VagrantData
-            {
-                Name = name,
-                Status = status,
-                Provider = provider
-            };
-            return vagrantData;
+            Name = name;
+            Status = status;
+            Provider = provider;
+            return true;
         }
 
     }
