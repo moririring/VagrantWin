@@ -2,6 +2,10 @@ VagrantWin
 ==========
 VagrantWin
 
+GitHub Pages
+http://moririring.github.io/VagrantWin/
+
+
 ![ScreenShot](Vagrant1.jpg)
 ![ScreenShot](Vagrant2.jpg)
 ![ScreenShot](Vagrant3.jpg)
