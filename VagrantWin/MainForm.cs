@@ -4,25 +4,25 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using VagrantWin.Properties;
 
 namespace VagrantWin
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, IWindowMessageHook
     {
         private readonly BindingList<VagrantData> _vagrantDatas = new BindingList<VagrantData>();
         private readonly BindingList<VagrantBoxData> _vagrantBoxDatas = new BindingList<VagrantBoxData>();
-        private readonly VagratWrapper _vagrantWrapper = new VagratWrapper();
+        private readonly VagrantWrapper _vagrantWrapper = new VagrantWrapper();
         //vagrantDirectoryTextBox.Textはディレクトリ、VagrantFilePathはファイル
         private string VagrantFilePath { set; get; }
 
-//        private string VagrantFilePath
-//        {
-//            get { return vagrantPathTextBox.Text; }
-//            set { vagrantPathTextBox.Text = value; }
-//        }
+        private readonly MessageBoxReplacer _replacer;
+
+        private const string BAR = "----------------------------------------------------------------------------------";
+
+        WebClient _downloadClient = null;
+
         public MainForm()
         {
             InitializeComponent();
@@ -36,6 +36,8 @@ namespace VagrantWin
             _vagrantWrapper.VagrantProcessStarted += VagrantWrapper_OnVagrantProcessStarted;
 
             _vagrantWrapper.VagrantProcessCompleted += VagrantWrapper_OnVagrantProcessCompleted;
+
+            _replacer = new MessageBoxReplacer(this);
         }
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -106,7 +108,7 @@ namespace VagrantWin
             commandGroupBox.Enabled = false;
             boxCommandGroupBox.Enabled = false;
             cancelButton.Visible = true;
-            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != "status");
+            cancelButton.Enabled = (_vagrantWrapper.CurrentCommand != VagrantCommand.Status);
             consoleTextBox.Focus();
             consoleTextBox.Select(consoleTextBox.Text.Length, 0);
         }
@@ -118,7 +120,7 @@ namespace VagrantWin
             commandGroupBox.Enabled = true;
             boxCommandGroupBox.Enabled = true;
             cancelButton.Visible = false;
-            if (_vagrantWrapper.CurrentCommand.Contains("init"))
+            if (_vagrantWrapper.CurrentCommand == VagrantCommand.Init)
             {
                 CheckVagrantFile();
             }
@@ -190,7 +192,7 @@ namespace VagrantWin
                 readButton.Enabled = false;
                 commandTabControl.SelectedIndex = 1;
                 VagrantFilePath = vagrantfile;
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, "status");
+                _vagrantWrapper.ExecuteVagrantCommandAsync(VagrantFilePath,VagrantCommand.Status);
                 readButton.Enabled = true;
             }
             //
@@ -212,6 +214,7 @@ namespace VagrantWin
                 vagrantDirectoryTextBox.Text = vagrantfileFolderBrowserDialog.SelectedPath;
             }
         }
+
         private void vagrantfileTextBox_TextChanged(object sender, EventArgs e)
         {
             if (Directory.Exists(vagrantDirectoryTextBox.Text))
@@ -226,18 +229,19 @@ namespace VagrantWin
             if (button != null)
             {
                 var commandName = button.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.ExecuteVagrantCommandAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
         }
         private void destroyButton_Click(object sender, EventArgs e)
         {
-            PostMessage(Handle, WM_APP_CENTERMSG, 0, IntPtr.Zero);
+            _replacer.ReplaceNextMessageBoxPosition();
             if (MessageBox.Show(Resources.DestroyMessage, @"destroy", MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning) == DialogResult.OK)
             {
                 var commandName = destroyButton.Text.ToLower();
-                _vagrantWrapper.StartVagrantProcessAsync(VagrantFilePath, commandName);
+                _vagrantWrapper.ExecuteVagrantCommandAsync(VagrantFilePath, VagrantWrapper.ToCommand(commandName));
             }
+
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -256,51 +260,7 @@ namespace VagrantWin
             _vagrantWrapper.CancelCurrentVagrantProcess();
         }
 
-        #region MessageBoxHack
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll", EntryPoint = "PostMessageA")]
-        static extern int PostMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
-        static extern int GetWindowRect(IntPtr hwnd, ref RECT lpRect);
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"),
-         DllImport("user32.dll")]
-        private static extern int MoveWindow(IntPtr hWnd, int x, int y, int w, int h, int repaint);
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int left;
-            public int top;
-            public int right;
-            public int bottom;
-        }
-        const int WM_APP = 0x8000;
-        const int WM_APP_CENTERMSG = WM_APP;
-
-        protected override void WndProc(ref Message m)
-        {
-            base.WndProc(ref m);
-            if (m.Msg == WM_APP_CENTERMSG)
-            {
-                IntPtr hWnd = GetForegroundWindow();
-                if (hWnd != this.Handle)
-                {
-                    var r = new RECT();
-                    GetWindowRect(hWnd, ref r);
-                    int w = r.right - r.left;
-                    int h = r.bottom - r.top;
-                    int x = Left + (Width - w) / 2;
-                    int y = Top + (Height - h) / 2;
-                    MoveWindow(hWnd, x, y, w, h, 0);
-                }
-            }
-        }
-        #endregion
-
-
-        WebClient downloadClient = null;
         private void boxButton_Click(object sender, EventArgs e)
         {
             boxButton.Enabled = false;
@@ -316,13 +276,13 @@ namespace VagrantWin
                 boxFileNameToolStripStatusLabel.Text = Path.GetFileName(form.SelectUrl);
                 boxFileToolStripSplitButton.Text = string.Format("0/0Mbyte");
 
-                downloadClient = new WebClient();
-                downloadClient.DownloadProgressChanged += (s, ea) =>
+                _downloadClient = new WebClient();
+                _downloadClient.DownloadProgressChanged += (s, ea) =>
                 {
                     boxFileToolStripSplitButton.Text = string.Format("{0}/{1}Mbyte", ea.BytesReceived / 1024 / 1024, ea.TotalBytesToReceive / 1024 / 1024);
                     boxFileToolStripProgressBar.Value = (int)ea.ProgressPercentage;
                 };
-                downloadClient.DownloadFileCompleted += (s, ea) =>
+                _downloadClient.DownloadFileCompleted += (s, ea) =>
                 {
                     if (ea.Error != null)
                         Console.WriteLine("エラー:{0}", ea.Error.Message);
@@ -336,7 +296,7 @@ namespace VagrantWin
                     boxFileToolStripProgressBar.Visible = false;
                     boxButton.Enabled = true;
                 };
-                downloadClient.DownloadFileAsync(uri, fileName);
+                _downloadClient.DownloadFileAsync(uri, fileName);
             }
             else
             {
@@ -345,7 +305,7 @@ namespace VagrantWin
         }
         private void boxFileCancelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            downloadClient.CancelAsync();
+            _downloadClient.CancelAsync();
         }
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -360,20 +320,20 @@ namespace VagrantWin
             var form = new AddForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, string.Format("box add {0} {1}", form._name, form._url));
+                _vagrantWrapper.AddBoxAsync(vagrantDirectoryTextBox.Text,  form._name, form._url);
             }
         }
 
         private void listButton_Click(object sender, EventArgs e)
         {
-            _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "box list");
+            _vagrantWrapper.ListBoxAsync(vagrantDirectoryTextBox.Text);
         }
 
         private void removeButton_Click(object sender, EventArgs e)
         {
             foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "box remove " + boxData.Name);
+                _vagrantWrapper.RemoveBoxAsync(vagrantDirectoryTextBox.Text, boxData.Name);
             }
         }
 
@@ -381,9 +341,23 @@ namespace VagrantWin
         {
             foreach (var boxData in _vagrantBoxDatas.Where(x => x.Check))
             {
-                _vagrantWrapper.StartVagrantProcessAsync(vagrantDirectoryTextBox.Text, "init " + boxData.Name);
+                _vagrantWrapper.InitWithBoxNameAsync(vagrantDirectoryTextBox.Text, boxData.Name);
             }
         }
 
+        public event EventHandler<WindowMessageEventArgs> WindowMessageReceived;
+
+        protected virtual void OnWindowMessageReceived(Message msg)
+        {
+            var handler = WindowMessageReceived;
+            if (handler != null) handler(this, new WindowMessageEventArgs(msg, this));
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+
+            OnWindowMessageReceived(m);
+        }
     }
 }

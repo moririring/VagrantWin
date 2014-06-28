@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VagrantWin
 {
-    internal class VagratWrapper
+    public class VagrantWrapper
     {
         private Process _currentProcess;
 
@@ -41,33 +41,26 @@ namespace VagrantWin
             if (handler != null) handler(this, EventArgs.Empty);
         }
 
-        public string CurrentCommand { get; private set; }
+        public VagrantCommand CurrentCommand { get; private set; }
 
-        private Process StartVagrantProcess(string vagrantFilePath, string command)
+        private Process StartVagrantProcess(string vagrantFilePath, string commandString)
         {
-            var workDirectory = "";
-            if (File.Exists(vagrantFilePath))
-            {
-                workDirectory = Path.GetDirectoryName(vagrantFilePath);
-            }
-            else if (Directory.Exists(vagrantFilePath))
-            {
-                workDirectory = vagrantFilePath;
-            }
+            var workDirectory = File.Exists(vagrantFilePath)
+                ? Path.GetDirectoryName(vagrantFilePath)
+                : Directory.Exists(vagrantFilePath) ? vagrantFilePath 
+                : "";
 
             var process = new Process
             {
-
-
                 StartInfo =
                 {
-                    FileName = Environment.GetEnvironmentVariable("ComSpec")  ?? "",
+                    FileName = Environment.GetEnvironmentVariable("ComSpec") ?? "",
                     WorkingDirectory = workDirectory ?? "",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    Arguments = "/c vagrant " + command,
+                    Arguments = "/c vagrant " + commandString,
                 }
             };
             process.OutputDataReceived += (_, e) =>
@@ -87,11 +80,21 @@ namespace VagrantWin
             return process;
         }
 
-        public async void StartVagrantProcessAsync(string vagrantFilePath, string command)
+        public static string ToCommandString(VagrantCommand command)
+        {
+            return command.ToString().ToLower() + (command == VagrantCommand.Destroy ? " -f" : "");
+        }
+
+        public async void ExecuteVagrantCommandAsync(string vagrantFilePath, VagrantCommand command)
         {
             CurrentCommand = command;
 
-            using (var process = StartVagrantProcess(vagrantFilePath, CurrentCommand))
+            await StartVagrantProcessAsync(vagrantFilePath, ToCommandString(command));
+        }
+
+        private async Task StartVagrantProcessAsync(string vagrantFilePath, string commandStr)
+        {
+            using (var process = StartVagrantProcess(vagrantFilePath, commandStr))
             {
                 OnVagrantProcessStarted();
                 _currentProcess = process;
@@ -112,6 +115,41 @@ namespace VagrantWin
                 _currentProcess = null;
                 OnVagrantProcessCompleted();
             }   
+        }
+
+        public static VagrantCommand ToCommand(string commandName)
+        {
+            VagrantCommand ret;
+            if (Enum.TryParse(commandName,true, out ret))
+            {
+                return ret;
+            }
+
+            return VagrantCommand.Empty;
+        }
+
+        public async void AddBoxAsync(string vagrantFilePath, string boxName, string boxUri)
+        {
+            CurrentCommand = VagrantCommand.Box;
+            await StartVagrantProcessAsync(vagrantFilePath, string.Format("box add {0} {1}", boxName, boxUri));
+        }
+
+        public async void ListBoxAsync(string vagrantFilePath)
+        {
+            CurrentCommand = VagrantCommand.Box;
+            await StartVagrantProcessAsync(vagrantFilePath, string.Format("box list"));
+        }
+
+        public async void RemoveBoxAsync(string vagrantFilePath, string boxName)
+        {
+            CurrentCommand = VagrantCommand.Box;
+            await StartVagrantProcessAsync(vagrantFilePath, string.Format("box remove {0}",boxName));
+        }
+
+        public async void InitWithBoxNameAsync(string vagrantFilePath, string boxName)
+        {
+            CurrentCommand = VagrantCommand.Init;
+            await StartVagrantProcessAsync(vagrantFilePath, string.Format("init {0}", boxName));
         }
     }
 }
